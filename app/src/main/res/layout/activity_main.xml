@@ -1,0 +1,130 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activities.MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:background="#353232"
+        android:gravity="center">
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="60dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="120dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/bg_edit"
+            android:gravity="center"
+            android:hint="Nhập tên truyện"
+            android:textColorHint="@color/material_dynamic_neutral80"
+            android:textSize="15dp" />
+
+        <ImageView
+            android:id="@+id/like"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="305dp"
+            android:src="@drawable/img_like_foreground">
+
+        </ImageView>
+
+        <ImageView
+            android:id="@+id/account_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="357dp"
+            android:src="@drawable/img_login_foreground">
+
+        </ImageView>
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/Nen"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@color/black"
+        android:src="@mipmap/test1" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/black"
+        android:text="Danh sách truyện"
+        android:textSize="20dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/black"
+        android:text="--------------------------------------------------------------"
+        android:textStyle="bold" />
+
+    <!-- KHÔNG dùng ScrollView, chỉ để LinearLayout chứa GridView -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDSTruyen"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/black"
+            android:horizontalSpacing="8dp"
+            android:isScrollContainer="false"
+            android:numColumns="3"
+            android:padding="8dp"
+            android:scrollbars="none"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="8dp"
+            tools:listitem="@layout/item_truyen">
+        </androidx.recyclerview.widget.RecyclerView>
+    </LinearLayout>
+
+    <!-- Nút bấm chuyển trang -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/black"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnPrevPage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#E91E63"
+            android:text="Trang trước" />
+
+        <Button
+            android:id="@+id/btnNextPage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:backgroundTint="#4CAF50"
+            android:text="Trang tiếp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="donate: 9357413940 - VietCombank"
+        android:textColor="@color/material_dynamic_neutral30"
+        android:textSize="13sp"
+        android:textStyle="italic">
+
+    </TextView>
+
+</LinearLayout>
