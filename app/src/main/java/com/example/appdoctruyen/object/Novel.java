@@ -11,69 +11,102 @@ import java.util.Map;
 
 public class Novel {
     public Map<String, Chapter> chapter;
+    public String tentruyen;
+    public String linkanh;
+    public String ngayxuatban;
+    public String soluongchap;
+    public String tacgia;
+    public String tinhtrang;
+    public String tomtat;
+    private String id;
+    private String theloai;
+    public Novel() {}
 
-    public String tenTruyen;
-    public String linkAnh;
-    public String ngayXuatBan;
-    public String soLuongChap;
-    public String tacGia;
-    public String tinhTrang;
-    public String tomTat;
-
-    public String getTenTruyen() {
-        return tenTruyen;
+    public Novel(Map<String, Chapter> chapter, String tentruyen, String linkanh, String ngayxuatban, String soluongchap, String tacgia, String tinhtrang, String tomtat, String theloai, String id) {
+        this.chapter = chapter;
+        this.tentruyen = tentruyen;
+        this.linkanh = linkanh;
+        this.ngayxuatban = ngayxuatban;
+        this.soluongchap = soluongchap;
+        this.tacgia = tacgia;
+        this.tinhtrang = tinhtrang;
+        this.tomtat = tomtat;
+        this.theloai = theloai;
+        this.id = id;
+    }
+    public String getTheloai() {
+        return theloai;
+    }
+    public void setTheloai(String theloai) {
+        this.theloai = theloai;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public Map<String, Chapter> getChapter() {
+        return chapter;
     }
 
-    public void setTenTruyen(String tenTruyen) {
-        this.tenTruyen = tenTruyen;
+    public void setChapter(Map<String, Chapter> chapter) {
+        this.chapter = chapter;
     }
 
-    public String getLinkAnh() {
-        return linkAnh;
+    public String getTentruyen() {
+        return tentruyen;
     }
 
-    public void setLinkAnh(String linkAnh) {
-        this.linkAnh = linkAnh;
+    public void setTentruyen(String tentruyen) {
+        this.tentruyen = tentruyen;
     }
 
-    public String getNgayXuatBan() {
-        return ngayXuatBan;
+    public String getLinkanh() {
+        return linkanh;
     }
 
-    public void setNgayXuatBan(String ngayXuatBan) {
-        this.ngayXuatBan = ngayXuatBan;
+    public void setLinkanh(String linkanh) {
+        this.linkanh = linkanh;
     }
 
-    public String getSoLuongChap() {
-        return soLuongChap;
+    public String getNgayxuatban() {
+        return ngayxuatban;
     }
 
-    public void setSoLuongChap(String soLuongChap) {
-        this.soLuongChap = soLuongChap;
+    public void setNgayxuatban(String ngayxuatban) {
+        this.ngayxuatban = ngayxuatban;
     }
 
-    public String getTacGia() {
-        return tacGia;
+    public String getSoluongchap() {
+        return soluongchap;
     }
 
-    public void setTacGia(String tacGia) {
-        this.tacGia = tacGia;
+    public void setSoluongchap(String soluongchap) {
+        this.soluongchap = soluongchap;
     }
 
-    public String getTinhTrang() {
-        return tinhTrang;
+    public String getTacgia() {
+        return tacgia;
     }
 
-    public void setTinhTrang(String tinhTrang) {
-        this.tinhTrang = tinhTrang;
+    public void setTacgia(String tacgia) {
+        this.tacgia = tacgia;
     }
 
-    public String getTomTat() {
-        return tomTat;
+    public String getTinhtrang() {
+        return tinhtrang;
     }
 
-    public void setTomTat(String tomTat) {
-        this.tomTat = tomTat;
+    public void setTinhtrang(String tinhtrang) {
+        this.tinhtrang = tinhtrang;
     }
 
+    public String getTomtat() {
+        return tomtat;
+    }
+
+    public void setTomtat(String tomtat) {
+        this.tomtat = tomtat;
+    }
 }

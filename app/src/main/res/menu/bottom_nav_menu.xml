@@ -1,0 +1,19 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/previous_chapter"
+        android:icon="@drawable/previous_chapter"
+        android:title="Previous" />
+    <item
+        android:id="@+id/home"
+        android:icon="@drawable/home"
+        android:title="Home"/>
+    <item
+        android:id="@+id/chapter_list"
+        android:icon="@drawable/list_chapter"
+        android:title="List" />
+    <item
+        android:id="@+id/next_chapter"
+        android:icon="@drawable/next_chapter"
+        android:title="Next"
+        />
+</menu>

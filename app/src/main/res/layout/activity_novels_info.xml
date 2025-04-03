@@ -1,0 +1,121 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/main">
+
+    <ImageView
+        android:id="@+id/img_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.1"
+        android:scaleType="centerCrop"
+        android:paddingTop="28dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- Ảnh bìa truyện -->
+            <ImageView
+                android:id="@+id/novelImage"
+                android:layout_width="150dp"
+                android:layout_height="200dp"
+                android:contentDescription="Novel Image"
+                android:scaleType="fitXY" />
+
+            <!-- Icon trái tim -->
+
+            <ImageView
+                android:id="@+id/heartIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@id/novelImage"
+                android:layout_alignBottom="@id/novelImage"
+                android:layout_marginEnd="-51dp"
+                android:layout_marginBottom="1dp"
+                android:contentDescription="@string/heart_icon"
+                android:src="@drawable/ic_heart_empty" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_toEndOf="@id/novelImage"
+                android:paddingStart="16dp">
+
+                <!-- Thông tin truyện -->
+                <TextView
+                    android:id="@+id/novelTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tên truyện: "
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/novelAuthor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tác giả: " />
+
+                <TextView
+                    android:id="@+id/novelStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tình trạng: " />
+
+                <TextView
+                    android:id="@+id/novelGenre"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thể loại: " />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Nút đọc truyện -->
+        <Button
+            android:id="@+id/readButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/colorAccent"
+            android:text="Đọc truyện"
+            android:textColor="@android:color/white" />
+
+        <!-- Cốt truyện -->
+        <TextView
+            android:id="@+id/storySynopsis"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:text="Cốt truyện"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/storyContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="10dp" />
+
+        <!-- Danh sách chương -->
+        <TextView
+            android:id="@+id/chapterListTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:text="Danh sách chương"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewChapters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+    </LinearLayout>
+</FrameLayout>

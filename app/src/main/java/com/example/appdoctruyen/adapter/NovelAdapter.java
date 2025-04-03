@@ -1,50 +1,61 @@
 // NovelAdapter.java
 package com.example.appdoctruyen.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.appdoctruyen.R;
 import com.example.appdoctruyen.object.Novel;
 
 import java.util.List;
 
-public class NovelAdapter extends RecyclerView.Adapter<NovelAdapter.NovelViewHolder> {
+public class NovelAdapter extends BaseAdapter {
+    private Context context;
     private List<Novel> novelList;
 
-    public NovelAdapter(List<Novel> novelList) {
+    public NovelAdapter(Context context, List<Novel> novelList) {
+        this.context = context;
         this.novelList = novelList;
     }
 
-    @NonNull
     @Override
-    public NovelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_truyen, parent, false);
-        return new NovelViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull NovelAdapter.NovelViewHolder holder, int position) {
-        Novel novel = novelList.get(position);
-        holder.titleTextView.setText(novel.getTenTruyen());
-    }
-
-    @Override
-    public int getItemCount() {
+    public int getCount() {
         return novelList.size();
     }
 
-    public static class NovelViewHolder extends RecyclerView.ViewHolder {
-        TextView titleTextView;
+    @Override
+    public Object getItem(int position) {
+        return novelList.get(position);
+    }
 
-        public NovelViewHolder(View itemView) {
-            super(itemView);
-            titleTextView = itemView.findViewById(R.id.txtTenTruyen);
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(context).inflate(R.layout.item_truyen, parent, false);
         }
+
+        Novel novel = novelList.get(position);
+        TextView titleTextView = convertView.findViewById(R.id.txtTenTruyen);
+        ImageView imageView = convertView.findViewById(R.id.imgAnhTruyen);
+
+        titleTextView.setText(novel.getTentruyen());
+
+        Glide.with(context)
+                .load(novel.getLinkanh())
+                .into(imageView);
+
+        return convertView;
     }
 
     public void updateList(List<Novel> newList) {

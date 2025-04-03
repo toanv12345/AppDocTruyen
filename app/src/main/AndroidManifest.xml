@@ -6,12 +6,22 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/icon_app"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/icon_app"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppDocTruyen"
         tools:targetApi="31">
+
+        <activity
+            android:name=".activities.NovelsInfoActivity"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".activities.ReadChapterActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="true">
+        </activity>
         <activity
             android:name=".activities.SignUpActivity"
             android:exported="true">

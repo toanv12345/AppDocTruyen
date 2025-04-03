@@ -3,6 +3,7 @@
     android:orientation="vertical"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:id="@+id/item_novel"
     android:background="@color/material_dynamic_neutral70">
 
     <RelativeLayout
@@ -37,7 +38,7 @@
     <TextView
         android:id="@+id/txtTenTruyen"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="27dp"
         android:padding="4dp"
         android:gravity="center"
         android:textSize="13dp"
