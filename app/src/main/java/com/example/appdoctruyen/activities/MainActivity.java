@@ -32,7 +32,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -204,31 +208,42 @@ public class MainActivity extends AppCompatActivity {
                 novelArrayList.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Novel novel = snapshot.getValue(Novel.class);
-                    novel.setId(snapshot.getKey());
-                    novelArrayList.add(novel);
+                    if (novel != null) {
+                        novel.setId(snapshot.getKey());
+                        novelArrayList.add(novel);
+                    }
                 }
-                // sap xep theo ngay up chapter
+
+                // Sắp xếp theo ngày mới nhất định dạng dd/MM/yyyy
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                 novelArrayList.sort((novel1, novel2) -> {
-                    String date1 = getLatestChapterDate(novel1);
-                    String date2 = getLatestChapterDate(novel2);
-                    if (date1.isEmpty() && date2.isEmpty()) {
+                    String dateStr1 = getLatestChapterDate(novel1);
+                    String dateStr2 = getLatestChapterDate(novel2);
+
+                    if (dateStr1.isEmpty() && dateStr2.isEmpty()) return 0;
+                    if (dateStr1.isEmpty()) return 1;
+                    if (dateStr2.isEmpty()) return -1;
+
+                    try {
+                        Date date1 = dateFormat.parse(dateStr1);
+                        Date date2 = dateFormat.parse(dateStr2);
+                        return date2.compareTo(date1); // Ngày mới hơn lên trước
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                         return 0;
-                    } else if (date1.isEmpty()) {
-                        return 1;
-                    } else if (date2.isEmpty()) {
-                        return -1;
-                    } else {
-                        return date2.compareTo(date1);
                     }
                 });
+
                 setUp();
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e("MainActivity", "Failed to read data", databaseError.toException());
             }
         });
     }
+
     private void checkLoginStatus() {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
