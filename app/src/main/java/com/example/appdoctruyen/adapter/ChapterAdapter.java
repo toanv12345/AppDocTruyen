@@ -18,6 +18,7 @@ import java.util.List;
 public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ChapterViewHolder> {
     private List<Chapter> chapterList;
     private OnItemClickListener onItemClickListener;
+    private List<String> readChapters;
 
     public interface OnItemClickListener {
         void onItemClick(Chapter chapter, int position);
@@ -26,6 +27,7 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ChapterV
     public ChapterAdapter(List<Chapter> chapterList, OnItemClickListener onItemClickListener) {
         this.chapterList = chapterList;
         this.onItemClickListener = onItemClickListener;
+        this.readChapters = readChapters;
     }
 
     @NonNull
@@ -59,7 +61,6 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ChapterV
             uploadDateTextView = itemView.findViewById(R.id.textUploadDate);
         }
     }
-
 
     public void updateList(List<Chapter> newList) {
         this.chapterList = newList;

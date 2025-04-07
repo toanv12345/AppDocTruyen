@@ -7,6 +7,7 @@ public class Chapter implements Serializable {
     public String noidung;
     public String title;
 
+
     public Chapter() {}
 
     public Chapter(String ngayup, String noidung, String title, String id) {

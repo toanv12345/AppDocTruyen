@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,11 +24,16 @@ import com.example.appdoctruyen.R;
 import com.example.appdoctruyen.adapter.ChapterAdapter;
 import com.example.appdoctruyen.decor.DividerItemDecoration;
 import com.example.appdoctruyen.object.Chapter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +56,8 @@ public class NovelsInfoActivity extends AppCompatActivity {
     private TextView novelName;
     private Button btnRead;
     private boolean isHeartFilled = false;
+    private ImageView heartIcon;
+    private Button btnAddChapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,17 +78,18 @@ public class NovelsInfoActivity extends AppCompatActivity {
         txt_description = findViewById(R.id.storyContent);
         novelImageView = findViewById(R.id.novelImage);
         novelBg = findViewById(R.id.img_bg);
-        ImageView heartIcon = findViewById(R.id.heartIcon);
+        heartIcon = findViewById(R.id.heartIcon);
         recyclerView = findViewById(R.id.recyclerViewChapters);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this));
+        btnAddChapter = findViewById(R.id.btn_chapter);
 
         database = FirebaseDatabase.getInstance().getReference("truyen").child("truyen3").child("linkanh");
         String description = getIntent().getStringExtra("tomtat");
         txt_description.setText(description);
 
         novelId = getIntent().getStringExtra("novelId");
-        if (novelId == null) {
+        if (novelId == null || novelId.isEmpty()) {
             Toast.makeText(this, "Invalid novel ID", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -109,13 +118,19 @@ public class NovelsInfoActivity extends AppCompatActivity {
         });
 
         heartIcon.setOnClickListener(v -> {
-            if (isHeartFilled) {
-                heartIcon.setImageResource(R.drawable.ic_heart_empty);
-            } else {
-                heartIcon.setImageResource(R.drawable.ic_heart_filled);
-            }
             isHeartFilled = !isHeartFilled;
+            heartIcon.setImageResource(isHeartFilled ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);
+            updateFollowStatus(novelId, isHeartFilled);
         });
+
+        checkFollowStatus();
+
+        btnAddChapter.setOnClickListener(v -> {
+            Intent intent = new Intent(NovelsInfoActivity.this, AddChapterActivity.class);
+            intent.putExtra("novelId", novelId);
+            startActivity(intent);
+        });
+        checkIfAdmin();
     }
 
     private void fetchChapters() {
@@ -137,6 +152,9 @@ public class NovelsInfoActivity extends AppCompatActivity {
                         chapterList.add(chapter);
                     }
                 }
+
+                // Sort the chapterList in reverse order
+                chapterList.sort((chapter1, chapter2) -> chapter2.getNgayup().compareTo(chapter1.getNgayup()));
 
                 runOnUiThread(() -> adapter.updateList(chapterList));
             }
@@ -187,5 +205,88 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 Toast.makeText(NovelsInfoActivity.this, "Lỗi tải dữ liệu: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+        checkIfAdmin();
     }
+
+    private void checkFollowStatus() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance()
+                    .getReference("users")
+                    .child(currentUser.getUid())
+                    .child("favorite");
+
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists() && dataSnapshot.hasChild(novelId)) {
+                        isHeartFilled = true;
+                        heartIcon.setImageResource(R.drawable.ic_heart_filled);
+                    } else {
+                        isHeartFilled = false;
+                        heartIcon.setImageResource(R.drawable.ic_heart_empty);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(NovelsInfoActivity.this, "Lỗi tải trạng thái theo dõi: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+    private void updateFollowStatus(String novelId, boolean isFollowed) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance()
+                    .getReference("users")
+                    .child(currentUser.getUid())
+                    .child("favorite");
+
+            if (isFollowed) {
+                userRef.child(novelId).setValue(true)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(NovelsInfoActivity.this, "Đã theo dõi truyện", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(NovelsInfoActivity.this, "Lỗi cập nhật trạng thái theo dõi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            } else {
+                userRef.child(novelId).removeValue()
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(NovelsInfoActivity.this, "Đã bỏ theo dõi truyện", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(NovelsInfoActivity.this, "Lỗi cập nhật trạng thái theo dõi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            }
+        }
+    }
+    private void checkIfAdmin() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            DatabaseReference userRef = FirebaseDatabase.getInstance()
+                    .getReference("users")
+                    .child(currentUser.getUid())
+                    .child("isAdmin");
+
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    Boolean isAdmin = dataSnapshot.getValue(Boolean.class);
+                    if (isAdmin != null && isAdmin) {
+                        btnAddChapter.setVisibility(View.VISIBLE);
+                    } else {
+                        btnAddChapter.setVisibility(View.GONE);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(NovelsInfoActivity.this, "Failed to check admin status: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
 }

@@ -10,11 +10,18 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appdoctruyen.R;
 import com.example.appdoctruyen.activities.SignUpActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -62,22 +69,33 @@ public class LoginActivity extends AppCompatActivity {
             // thực hiện đăng nhập
             Auth.signInWithEmailAndPassword(email, pass)
                     .addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "Login successful");
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "Login successful");
+                            FirebaseUser user = Auth.getCurrentUser();
+                            if (user != null) {
+                                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(user.getUid());
+                                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        Boolean isAdmin = snapshot.child("isAdmin").getValue(Boolean.class);
+                                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                        intent.putExtra("isAdmin", isAdmin != null && isAdmin);
+                                        startActivity(intent);
+                                        finish();
+                                    }
 
-                    // nếu đăng nhập thành công thì chuyển
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    intent.putExtra("imgResouce", R.drawable.new_img_login_foreground);
-                    startActivity(intent);
-                    finish();
-                }
-                else {
-                    Log.e(TAG, "Login failed: " + task.getException().getMessage());
-
-                    // nếu đăng nhập thất bại thì thông báo
-                    Toast.makeText(LoginActivity.this, "Đăng nhập thất bại!", Toast.LENGTH_SHORT).show();
-                }
-            });
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+                                        Log.e(TAG, "Failed to check admin status", error.toException());
+                                        Toast.makeText(LoginActivity.this, "Đăng nhập thất bại!", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            Log.e(TAG, "Login failed: " + task.getException().getMessage());
+                            Toast.makeText(LoginActivity.this, "Đăng nhập thất bại!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         });
 
     }

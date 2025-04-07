@@ -19,6 +19,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.auth.User;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +27,6 @@ public class SignUpActivity extends AppCompatActivity {
 
     private EditText editMail;
     private EditText editPass;
-
     private FirebaseAuth Auth;
     private FirebaseFirestore db;
 
@@ -53,10 +53,10 @@ public class SignUpActivity extends AppCompatActivity {
                     if (currentUser != null) {
                         Map<String, Object> user = new HashMap<>();
                         user.put("email", email);
+                        user.put("favorite", new ArrayList<String>());
                         db.collection("users").document(currentUser.getUid())
                                 .set(user)
                                 .addOnSuccessListener(aVoid -> {
-
                                     Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
                                     startActivity(intent);
                                     finish();

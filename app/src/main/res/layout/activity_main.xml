@@ -27,7 +27,7 @@
             android:textSize="15dp" />
 
         <ImageView
-            android:id="@+id/like"
+            android:id="@+id/img_follow"
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="290dp"
@@ -69,11 +69,10 @@
         android:textStyle="bold" />
 
     <!-- KHÔNG dùng ScrollView, chỉ để LinearLayout chứa GridView -->
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_weight="1">
 
         <GridView
             android:id="@+id/rvDSTruyen"
@@ -87,8 +86,23 @@
             android:scrollbars="none"
             android:stretchMode="columnWidth"
             android:verticalSpacing="8dp">
+
         </GridView>
-    </LinearLayout>
+
+        <!-- Button at the bottom right corner of GridView -->
+        <Button
+            android:id="@+id/btn_add"
+            android:layout_width="107dp"
+            android:layout_height="110dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="25dp"
+            android:alpha="0.7"
+            android:backgroundTint="#66FFCC"
+            android:padding="7dp"
+            android:text="+"
+            android:textSize="55dp"
+            android:visibility="visible" />
+    </FrameLayout>
 
     <!-- Nút bấm chuyển trang -->
 

@@ -8,31 +8,40 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Novel {
     public Map<String, Chapter> chapter;
     public String tentruyen;
     public String linkanh;
-    public String ngayxuatban;
-    public String soluongchap;
     public String tacgia;
     public String tinhtrang;
     public String tomtat;
     private String id;
     private String theloai;
-    public Novel() {}
+    private String latestChapter;
+    public Novel() {
+        this.chapter = new HashMap<>();
+    }
 
-    public Novel(Map<String, Chapter> chapter, String tentruyen, String linkanh, String ngayxuatban, String soluongchap, String tacgia, String tinhtrang, String tomtat, String theloai, String id) {
+
+    public Novel(Map<String, Chapter> chapter, String tentruyen, String linkanh, String tacgia, String tinhtrang, String tomtat, String theloai, String id) {
         this.chapter = chapter;
         this.tentruyen = tentruyen;
         this.linkanh = linkanh;
-        this.ngayxuatban = ngayxuatban;
-        this.soluongchap = soluongchap;
         this.tacgia = tacgia;
         this.tinhtrang = tinhtrang;
         this.tomtat = tomtat;
         this.theloai = theloai;
         this.id = id;
+    }
+
+    public String getLatestChapter() {
+        return latestChapter;
+    }
+    public void setLatestChapter(String latestChapter) {
+        this.latestChapter = latestChapter;
     }
     public String getTheloai() {
         return theloai;
@@ -70,22 +79,6 @@ public class Novel {
         this.linkanh = linkanh;
     }
 
-    public String getNgayxuatban() {
-        return ngayxuatban;
-    }
-
-    public void setNgayxuatban(String ngayxuatban) {
-        this.ngayxuatban = ngayxuatban;
-    }
-
-    public String getSoluongchap() {
-        return soluongchap;
-    }
-
-    public void setSoluongchap(String soluongchap) {
-        this.soluongchap = soluongchap;
-    }
-
     public String getTacgia() {
         return tacgia;
     }
@@ -109,4 +102,5 @@ public class Novel {
     public void setTomtat(String tomtat) {
         this.tomtat = tomtat;
     }
+
 }

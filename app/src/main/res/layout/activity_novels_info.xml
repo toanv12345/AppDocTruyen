@@ -111,11 +111,29 @@
             android:text="Danh sách chương"
             android:textStyle="bold" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewChapters"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false" />
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewChapters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+            <Button
+                android:id="@+id/btn_chapter"
+                android:layout_width="90dp"
+                android:layout_height="96dp"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="25dp"
+                android:alpha="0.7"
+                android:backgroundTint="#CC9900"
+                android:padding="7dp"
+                android:text="+"
+                android:textSize="55dp"
+                android:visibility="visible" />
+
+        </FrameLayout>
 
     </LinearLayout>
 </FrameLayout>

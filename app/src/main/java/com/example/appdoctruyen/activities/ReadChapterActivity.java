@@ -18,6 +18,10 @@ import com.example.appdoctruyen.R;
 import com.example.appdoctruyen.adapter.ChapterAdapter;
 import com.example.appdoctruyen.object.Chapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
@@ -93,4 +97,5 @@ public class ReadChapterActivity extends AppCompatActivity {
         txtTitle.setText(chapter.getTitle());
         txtContent.setText(Html.fromHtml(chapter.getNoidung(), Html.FROM_HTML_MODE_LEGACY));
     }
+
 }

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:backgroundTint="#CCFFFF"
+    android:background="@color/white">
+
+    <TextView
+        android:layout_marginTop="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add New Novel"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_gravity="center" />
+
+    <EditText
+        android:layout_marginTop="20dp"
+        android:id="@+id/edt_new_novel_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColorHint="@color/material_dynamic_neutral80"
+        android:textStyle="italic"
+        android:hint="Link Image"
+        android:padding="12dp"
+        android:background="@drawable/edittext_rounded"
+        android:textColor="@color/black"
+        android:layout_marginBottom="16dp"/>
+
+<EditText
+        android:id="@+id/edt_new_novel_tentruyen"
+            android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/edittext_rounded"
+        android:hint="Novel Name"
+        android:padding="12dp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/material_dynamic_neutral80"
+        android:textStyle="italic"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/edt_new_novel_tacgia"
+        android:layout_width="match_parent"
+        android:background="@drawable/edittext_rounded"
+        android:layout_height="wrap_content"
+        android:textColorHint="@color/material_dynamic_neutral80"
+        android:textStyle="italic"
+        android:hint="Tac Gia"
+        android:padding="12dp"
+        android:textColor="@color/black"
+        android:layout_marginBottom="16dp"/>
+    <EditText
+        android:id="@+id/edt_new_novel_theloai"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/edittext_rounded"
+        android:hint="The Loai"
+        android:padding="12dp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/material_dynamic_neutral80"
+        android:textStyle="italic"
+        android:layout_marginBottom="16dp"/>
+
+
+    <EditText
+        android:id="@+id/edt_new_novel_tomtat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tom Tat Truyen"
+        android:textColorHint="@color/material_dynamic_neutral80"
+        android:textStyle="italic"
+        android:background="@drawable/edittext_rounded"
+        android:padding="12dp"
+        android:textColor="@color/black"
+        android:layout_marginBottom="16dp"
+        android:inputType="textMultiLine"
+        android:minLines="3"/>
+
+    <Button
+        android:id="@+id/btnAddNovel"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Add Novel"
+        android:textColor="@color/white"
+        android:padding="12dp"
+        android:textSize="16sp"
+        android:backgroundTint="@color/black"
+        android:layout_marginTop="16dp"/>
+
+</LinearLayout>

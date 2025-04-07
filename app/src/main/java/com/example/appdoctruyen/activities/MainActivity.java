@@ -46,7 +46,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView accountIcon;
     private FirebaseAuth auth;
+    private ImageView imgFollow;
     SearchView searchView;
+    private Button btnAdd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
         setUp();
         setClick();
         checkLoginStatus();
+        checkAdminStatus();
+        //createDefaultAdminAccount(); //vì tạo tài khoản admin mặc định nên chỉ cần chạy 1 lần
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -98,12 +102,19 @@ public class MainActivity extends AppCompatActivity {
         btnPrevPage = findViewById(R.id.btnPrevPage);
         accountIcon = findViewById(R.id.account_icon);
         searchView = findViewById(R.id.search_view);
+        imgFollow = findViewById(R.id.img_follow);
+        btnAdd = findViewById(R.id.btn_add);
     }
 
     private void setUp() {
         int start = currentPage * ITEMS_PER_PAGE;
         int end = Math.min(start + ITEMS_PER_PAGE, novelArrayList.size());
         ArrayList<Novel> pageData = new ArrayList<>(novelArrayList.subList(start, end));
+
+        for(Novel novel : pageData) {
+            String latestChapterName = getLatestChapterName(novel);
+            novel.setLatestChapter(latestChapterName);
+        }
 
         novelAdapter.updateList(pageData);
     }
@@ -114,8 +125,18 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        btnAdd.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddNovelActivity.class);
+            startActivity(intent);
+        });
+
         btnNextPage.setOnClickListener(v -> nextPage());
         btnPrevPage.setOnClickListener(v -> prevPage());
+
+        imgFollow.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, FollowActivity.class);
+            startActivity(intent);
+        });
 
         // yeu cau dang nhap moi bam duoc
         gvDSTruyen.setOnItemClickListener((parent, view, position, id) -> {
@@ -130,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // đăng xuất
         accountIcon.setOnClickListener(v -> {
             FirebaseUser user = auth.getCurrentUser();
             if (user != null) {
@@ -139,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("Có", (dialog, which) -> {
                             auth.signOut();
                             checkLoginStatus();
+                            btnAdd.setVisibility(View.GONE);
                             Toast.makeText(MainActivity.this, "Đăng xuất thành công", Toast.LENGTH_SHORT).show();
                         })
                         .setNegativeButton("Không", null)
@@ -189,11 +212,9 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         return date2.compareTo(date1);
                     }
-
                 });
                 setUp();
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e("MainActivity", "Failed to read data", databaseError.toException());
@@ -238,5 +259,68 @@ public class MainActivity extends AppCompatActivity {
         }
         return latestDate;
     }
-}
 
+    private void checkAdminStatus() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            String userId = user.getUid();
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        Boolean isAdmin = snapshot.child("isAdmin").getValue(Boolean.class);
+                        if (isAdmin != null && isAdmin) {
+                            btnAdd.setVisibility(View.VISIBLE);
+                        } else {
+                            btnAdd.setVisibility(View.GONE);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("MainActivity", "Failed to check admin status", error.toException());
+                }
+            });
+        } else {
+            btnAdd.setVisibility(View.GONE);
+        }
+    }
+    //thêm tài khoản admin
+    private void createDefaultAdminAccount() {
+        String defaultAdminEmail = "admin@gmail.com";
+        String defaultAdminPassword = "admin123";
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+
+        FirebaseAuth.getInstance().createUserWithEmailAndPassword(defaultAdminEmail, defaultAdminPassword)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = task.getResult().getUser();
+                        if (user != null) {
+                            usersRef.child(user.getUid()).child("isAdmin").setValue(true)
+                                    .addOnCompleteListener(task1 -> {
+                                        if (task1.isSuccessful()) {
+                                            Log.d("MainActivity", "Admin account created successfully");
+                                        } else {
+                                            Log.e("MainActivity", "Failed to set admin status: " + task1.getException().getMessage());
+                                        }
+                                    });
+                        }
+                    } else {
+                        Log.e("MainActivity", "Admin account creation failed: " + task.getException().getMessage());
+                    }
+                });
+    }
+    private String getLatestChapterName(Novel novel) {
+        String latestChapterName = "";
+        String latestDate = "";
+        for (Chapter chapter : novel.getChapter().values()) {
+            if (chapter.getNgayup().compareTo(latestDate) > 0) {
+                latestDate = chapter.getNgayup();
+                latestChapterName = chapter.getTitle();
+            }
+        }
+        return latestChapterName;
+    }
+}

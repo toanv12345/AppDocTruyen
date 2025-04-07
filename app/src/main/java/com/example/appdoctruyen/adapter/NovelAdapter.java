@@ -48,8 +48,10 @@ public class NovelAdapter extends BaseAdapter {
         Novel novel = novelList.get(position);
         TextView titleTextView = convertView.findViewById(R.id.txtTenTruyen);
         ImageView imageView = convertView.findViewById(R.id.imgAnhTruyen);
+        TextView latestChapterTextView = convertView.findViewById(R.id.txtTenChap);
 
         titleTextView.setText(novel.getTentruyen());
+        latestChapterTextView.setText(novel.getLatestChapter());
 
         Glide.with(context)
                 .load(novel.getLinkanh())
