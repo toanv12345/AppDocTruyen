@@ -13,9 +13,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.appdoctruyen.R;
 import com.example.appdoctruyen.object.Chapter;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ChapterViewHolder> {
@@ -23,6 +27,8 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ChapterV
     private List<Chapter> chapterList;
     private OnItemClickListener listener;
     private Set<String> readChapterIds = new HashSet<>();
+    private SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
     public interface OnItemClickListener {
         void onItemClick(Chapter chapter, int position);
@@ -45,15 +51,35 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ChapterV
         Chapter chapter = chapterList.get(position);
         holder.chapterTitle.setText(chapter.getTitle());
 
+        // Format và hiển thị ngày upload
+        String uploadDate = chapter.getNgayup();
+        if (uploadDate != null && !uploadDate.isEmpty()) {
+            try {
+                // Chuyển đổi định dạng ngày từ yyyy-MM-dd sang dd/MM/yyyy
+                Date date = inputFormat.parse(uploadDate);
+                if (date != null) {
+                    uploadDate = "Ngày đăng: " + outputFormat.format(date);
+                }
+            } catch (ParseException e) {
+                // Nếu không parse được, giữ nguyên giá trị
+                uploadDate = "Ngày đăng: " + uploadDate;
+            }
+            holder.chapterDate.setText(uploadDate);
+            holder.chapterDate.setVisibility(View.VISIBLE);
+        } else {
+            holder.chapterDate.setText("Ngày đăng: Không xác định");
+            holder.chapterDate.setVisibility(View.VISIBLE);
+        }
+
         // Kiểm tra xem chapter đã được đọc chưa
         if (readChapterIds.contains(chapter.getId())) {
             // Nếu đã đọc, hiển thị nghiêng và màu xám
             holder.chapterTitle.setTypeface(holder.chapterTitle.getTypeface(), Typeface.ITALIC);
-            holder.chapterTitle.setTextColor(Color.GRAY); // Đổi màu chữ sang xám
+            holder.chapterTitle.setTextColor(Color.GRAY);
         } else {
             // Nếu chưa đọc, hiển thị bình thường và màu đen
             holder.chapterTitle.setTypeface(holder.chapterTitle.getTypeface(), Typeface.NORMAL);
-            holder.chapterTitle.setTextColor(Color.BLACK); // Màu chữ đen mặc định
+            holder.chapterTitle.setTextColor(Color.BLACK);
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -103,10 +129,12 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ChapterV
 
     public static class ChapterViewHolder extends RecyclerView.ViewHolder {
         TextView chapterTitle;
+        TextView chapterDate;
 
         public ChapterViewHolder(@NonNull View itemView) {
             super(itemView);
             chapterTitle = itemView.findViewById(R.id.tv_chapter_title);
+            chapterDate = itemView.findViewById(R.id.tv_chapter_date);
         }
     }
 }
