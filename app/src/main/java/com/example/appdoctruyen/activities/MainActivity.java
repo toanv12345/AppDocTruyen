@@ -2,7 +2,6 @@ package com.example.appdoctruyen.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -54,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
             R.mipmap.test2,
             R.mipmap.test3
     };
-    private int currentIndex = 0;
     private ViewFlipper imgNen;
     private static final int ITEMS_PER_PAGE = 18;
 
