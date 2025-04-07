@@ -3,4 +3,18 @@
     <string name="admob_app_id">YOUR_ADMOB_APP_ID</string>
     <string name="heart_icon">Heart Icon</string>
     <string name="chapter_list_description">List of chapters</string>
+    <string-array name="novel_status_options">
+        <item>Đang tiến hành</item>
+        <item>Đã hoàn thành</item>
+        <item>Tạm ngưng</item>
+        <item>Ngưng tiến hành</item>
+    </string-array>
+
+    <!-- Các giá trị tương ứng để lưu trữ trong cơ sở dữ liệu -->
+    <string-array name="novel_status_values">
+        <item>ongoing</item>
+        <item>completed</item>
+        <item>paused</item>
+        <item>discontinued</item>
+    </string-array>
 </resources>

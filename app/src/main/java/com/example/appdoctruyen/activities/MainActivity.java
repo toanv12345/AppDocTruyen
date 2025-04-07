@@ -134,21 +134,20 @@ public class MainActivity extends AppCompatActivity {
         btnPrevPage.setOnClickListener(v -> prevPage());
 
         imgFollow.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, FollowActivity.class);
-            startActivity(intent);
-        });
-
-        // yeu cau dang nhap moi bam duoc
-        gvDSTruyen.setOnItemClickListener((parent, view, position, id) -> {
             if (auth.getCurrentUser() == null) {
-                Toast.makeText(MainActivity.this, "Vui lòng đăng nhập để xem truyện!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Vui lòng đăng nhập để theo dõi!", Toast.LENGTH_SHORT).show();
             } else {
-                Novel novel = (Novel) novelAdapter.getItem(position);
-                Intent intent = new Intent(MainActivity.this, NovelsInfoActivity.class);
-                intent.putExtra("novelId", novel.getId());
-                intent.putExtra("tomtat", novel.getTomtat());
+                Intent intent = new Intent(MainActivity.this, FollowActivity.class);
                 startActivity(intent);
             }
+        });
+
+        gvDSTruyen.setOnItemClickListener((parent, view, position, id) -> {
+            Novel novel = (Novel) novelAdapter.getItem(position);
+            Intent intent = new Intent(MainActivity.this, NovelsInfoActivity.class);
+            intent.putExtra("novelId", novel.getId());
+            intent.putExtra("tomtat", novel.getTomtat());
+            startActivity(intent);
         });
 
         // đăng xuất
@@ -249,12 +248,16 @@ public class MainActivity extends AppCompatActivity {
         }
         novelAdapter.updateList(filteredList);
     }
-    //lay ngay up chapter
+
+    // Lấy ngày up của chapter mới nhất có nội dung
     private String getLatestChapterDate(Novel novel) {
         String latestDate = "";
         for (Chapter chapter : novel.getChapter().values()) {
-            if(chapter.getNgayup().compareTo(latestDate) > 0) {
-                latestDate = chapter.getNgayup();
+            // Chỉ xét chapter có nội dung
+            if (chapter.getNoidung() != null && !chapter.getNoidung().trim().isEmpty()) {
+                if (chapter.getNgayup().compareTo(latestDate) > 0) {
+                    latestDate = chapter.getNgayup();
+                }
             }
         }
         return latestDate;
@@ -287,6 +290,7 @@ public class MainActivity extends AppCompatActivity {
             btnAdd.setVisibility(View.GONE);
         }
     }
+
     //thêm tài khoản admin
     private void createDefaultAdminAccount() {
         String defaultAdminEmail = "admin@gmail.com";
@@ -312,13 +316,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
     private String getLatestChapterName(Novel novel) {
         String latestChapterName = "";
         String latestDate = "";
         for (Chapter chapter : novel.getChapter().values()) {
-            if (chapter.getNgayup().compareTo(latestDate) > 0) {
-                latestDate = chapter.getNgayup();
-                latestChapterName = chapter.getTitle();
+            if (chapter.getNoidung() != null && !chapter.getNoidung().trim().isEmpty()) {
+                if (chapter.getNgayup().compareTo(latestDate) > 0) {
+                    latestDate = chapter.getNgayup();
+                    latestChapterName = chapter.getTitle();
+                }
             }
         }
         return latestChapterName;

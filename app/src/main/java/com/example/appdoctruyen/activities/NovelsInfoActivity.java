@@ -1,15 +1,18 @@
 package com.example.appdoctruyen.activities;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import androidx.appcompat.app.AlertDialog;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ScrollView;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,14 +34,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
-import android.text.Html;
-
 
 public class NovelsInfoActivity extends AppCompatActivity {
 
@@ -54,10 +52,14 @@ public class NovelsInfoActivity extends AppCompatActivity {
     private TextView auth;
     private TextView genre;
     private TextView novelName;
+    private TextView publishDate;
     private Button btnRead;
     private boolean isHeartFilled = false;
     private ImageView heartIcon;
+    private ImageButton btnEditNovel;
     private Button btnAddChapter;
+    private Button btnHome; // Thêm nút trang chủ
+    private TextView chapterCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,18 +77,23 @@ public class NovelsInfoActivity extends AppCompatActivity {
         auth = findViewById(R.id.novelAuthor);
         genre = findViewById(R.id.novelGenre);
         novelName = findViewById(R.id.novelTitle);
+        publishDate = findViewById(R.id.novelPublishDate);
+        chapterCount = findViewById(R.id.novelChapterCount);
         txt_description = findViewById(R.id.storyContent);
         novelImageView = findViewById(R.id.novelImage);
         novelBg = findViewById(R.id.img_bg);
         heartIcon = findViewById(R.id.heartIcon);
+        btnEditNovel = findViewById(R.id.btnEditNovel);
         recyclerView = findViewById(R.id.recyclerViewChapters);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this));
         btnAddChapter = findViewById(R.id.btn_chapter);
+        btnHome = findViewById(R.id.btn_home); // Ánh xạ nút trang chủ
 
         database = FirebaseDatabase.getInstance().getReference("truyen").child("truyen3").child("linkanh");
         String description = getIntent().getStringExtra("tomtat");
         txt_description.setText(description);
+        setupTextViewPopups();
 
         novelId = getIntent().getStringExtra("novelId");
         if (novelId == null || novelId.isEmpty()) {
@@ -99,6 +106,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
             Intent intent = new Intent(NovelsInfoActivity.this, ReadChapterActivity.class);
             intent.putExtra("chapterList", new ArrayList<>(chapterList));
             intent.putExtra("currentIndex", position);
+            intent.putExtra("novelId", novelId);
             startActivity(intent);
         });
 
@@ -111,6 +119,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 Intent intent = new Intent(NovelsInfoActivity.this, ReadChapterActivity.class);
                 intent.putExtra("chapterList", new ArrayList<>(chapterList));
                 intent.putExtra("currentIndex", 0);
+                intent.putExtra("novelId", novelId);
                 startActivity(intent);
             } else {
                 Toast.makeText(NovelsInfoActivity.this, "No chapters available", Toast.LENGTH_SHORT).show();
@@ -123,6 +132,20 @@ public class NovelsInfoActivity extends AppCompatActivity {
             updateFollowStatus(novelId, isHeartFilled);
         });
 
+        btnEditNovel.setOnClickListener(v -> {
+            Intent intent = new Intent(NovelsInfoActivity.this, EditNovelActivity.class);
+            intent.putExtra("novelId", novelId);
+            startActivity(intent);
+        });
+
+        // Thiết lập sự kiện click cho nút trang chủ
+        btnHome.setOnClickListener(v -> {
+            Intent intent = new Intent(NovelsInfoActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        });
+
         checkFollowStatus();
 
         btnAddChapter.setOnClickListener(v -> {
@@ -130,6 +153,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
             intent.putExtra("novelId", novelId);
             startActivity(intent);
         });
+
         checkIfAdmin();
     }
 
@@ -142,6 +166,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
                     Toast.makeText(NovelsInfoActivity.this, "Không có chương nào!", Toast.LENGTH_SHORT).show();
+                    chapterCount.setText("Số lượng chap: 0");
                     return;
                 }
 
@@ -149,12 +174,29 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Chapter chapter = snapshot.getValue(Chapter.class);
                     if (chapter != null) {
-                        chapterList.add(chapter);
+                        // Chỉ thêm chapter có nội dung vào danh sách
+                        String content = chapter.getNoidung();
+                        if (content != null && !content.trim().isEmpty()) {
+                            // Đặt ID cho chapter để sử dụng khi sửa
+                            chapter.setId(snapshot.getKey());
+                            chapterList.add(chapter);
+                        }
                     }
                 }
 
-                // Sort the chapterList in reverse order
-                chapterList.sort((chapter1, chapter2) -> chapter2.getNgayup().compareTo(chapter1.getNgayup()));
+                // Cập nhật số lượng chap
+                chapterCount.setText("Số lượng chap: " + chapterList.size());
+
+                if (chapterList.isEmpty()) {
+                    Toast.makeText(NovelsInfoActivity.this, "Không có chapter nào có nội dung!", Toast.LENGTH_SHORT).show();
+                }
+
+                // Sắp xếp chapter theo tên (tăng dần)
+                chapterList.sort((chapter1, chapter2) -> {
+                    String title1 = chapter1.getTitle();
+                    String title2 = chapter2.getTitle();
+                    return title1.compareTo(title2);
+                });
 
                 runOnUiThread(() -> adapter.updateList(chapterList));
             }
@@ -162,6 +204,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(NovelsInfoActivity.this, "Lỗi tải chương: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                chapterCount.setText("Số lượng chap: 0");
             }
         });
     }
@@ -184,12 +227,22 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 String coverUrl = dataSnapshot.child("linkanh").getValue(String.class);
                 String description = dataSnapshot.child("tomtat").getValue(String.class);
                 String status = dataSnapshot.child("tinhtrang").getValue(String.class);
+                String pubDate = dataSnapshot.child("ngayxuatban").getValue(String.class); // Lấy ngày xuất bản
 
                 novelName.setText("Tên truyện: " + name);
                 auth.setText("Tác giả: " + author);
                 genre.setText("Thể loại: " + category);
                 txt_description.setText(Html.fromHtml(description, Html.FROM_HTML_MODE_LEGACY));
                 stat.setText("Tình trạng: " + status);
+
+                // Hiển thị ngày xuất bản nếu có
+                if (pubDate != null && !pubDate.trim().isEmpty()) {
+                    publishDate.setText("Ngày xuất bản: " + pubDate);
+                    publishDate.setVisibility(View.VISIBLE);
+                } else {
+                    publishDate.setText("Ngày xuất bản: Chưa cập nhật");
+                    publishDate.setVisibility(View.VISIBLE);
+                }
 
                 Glide.with(NovelsInfoActivity.this)
                         .load(coverUrl)
@@ -205,7 +258,6 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 Toast.makeText(NovelsInfoActivity.this, "Lỗi tải dữ liệu: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        checkIfAdmin();
     }
 
     private void checkFollowStatus() {
@@ -235,6 +287,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
             });
         }
     }
+
     private void updateFollowStatus(String novelId, boolean isFollowed) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -262,31 +315,129 @@ public class NovelsInfoActivity extends AppCompatActivity {
             }
         }
     }
+
     private void checkIfAdmin() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             DatabaseReference userRef = FirebaseDatabase.getInstance()
                     .getReference("users")
-                    .child(currentUser.getUid())
-                    .child("isAdmin");
+                    .child(currentUser.getUid());
 
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            userRef.child("isAdmin").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     Boolean isAdmin = dataSnapshot.getValue(Boolean.class);
                     if (isAdmin != null && isAdmin) {
+                        // Người dùng là admin
                         btnAddChapter.setVisibility(View.VISIBLE);
+                        btnEditNovel.setVisibility(View.VISIBLE);
+                        heartIcon.setVisibility(View.GONE);
                     } else {
+                        // Người dùng không phải admin
                         btnAddChapter.setVisibility(View.GONE);
+                        btnEditNovel.setVisibility(View.GONE);
+                        heartIcon.setVisibility(View.VISIBLE);
+                        checkFollowStatus(); // Kiểm tra trạng thái yêu thích cho người dùng thường
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(NovelsInfoActivity.this, "Failed to check admin status: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                    btnAddChapter.setVisibility(View.GONE);
+                    btnEditNovel.setVisibility(View.GONE);
+                    heartIcon.setVisibility(View.VISIBLE);
                 }
             });
         }
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        fetchStoryDetails(novelId);
+        fetchChapters();
+    }
+    private void setupTextViewPopups() {
+        // Setup popup cho tiêu đề
+        novelName.setOnClickListener(v -> {
+            String title = novelName.getText().toString();
+            if (!title.isEmpty()) {
+                showPopup("Tiêu đề truyện", title);
+            }
+        });
+
+        // Setup popup cho tác giả
+        auth.setOnClickListener(v -> {
+            String author = auth.getText().toString();
+            if (!author.isEmpty()) {
+                showPopup("Tác giả", author);
+            }
+        });
+
+        // Setup popup cho thể loại
+        genre.setOnClickListener(v -> {
+            String genreText = genre.getText().toString();
+            if (!genreText.isEmpty()) {
+                showPopup("Thể loại", genreText);
+            }
+        });
+
+        // Setup popup cho cốt truyện
+        txt_description.setOnClickListener(v -> {
+            String description = txt_description.getText().toString();
+            if (!description.isEmpty()) {
+                showPopup("Cốt truyện", description);
+            }
+        });
+
+        // Setup popup cho ngày xuất bản
+        publishDate.setOnClickListener(v -> {
+            String pubDateText = publishDate.getText().toString();
+            if (!pubDateText.isEmpty()) {
+                showPopup("Ngày xuất bản", pubDateText);
+            }
+        });
+
+        // Setup popup cho tình trạng
+        stat.setOnClickListener(v -> {
+            String status = stat.getText().toString();
+            if (!status.isEmpty()) {
+                showPopup("Tình trạng", status);
+            }
+        });
+    }
+
+    private void showPopup(String title, String content) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+
+        // Tạo ScrollView để nội dung có thể cuộn nếu quá dài
+        ScrollView scrollView = new ScrollView(this);
+        TextView textView = new TextView(this);
+        textView.setText(content);
+        textView.setPadding(30, 30, 30, 30);
+        textView.setTextSize(16);
+        scrollView.addView(textView);
+
+        builder.setView(scrollView);
+        builder.setPositiveButton("Đóng", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // Thiết lập kích thước tối đa cho dialog
+        Window window = dialog.getWindow();
+        if (window != null) {
+            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+            layoutParams.copyFrom(window.getAttributes());
+            // Đặt chiều rộng là 90% màn hình
+            layoutParams.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.9);
+            // Đặt chiều cao tối đa là 80% màn hình
+            layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            layoutParams.height = Math.min(layoutParams.height,
+                    (int) (getResources().getDisplayMetrics().heightPixels * 0.8));
+            window.setAttributes(layoutParams);
+        }
+    }
 }

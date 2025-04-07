@@ -1,4 +1,5 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/main">
@@ -9,7 +10,7 @@
         android:layout_height="match_parent"
         android:alpha="0.1"
         android:scaleType="centerCrop"
-        android:paddingTop="28dp"/>
+        android:paddingTop="28dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,24 +30,11 @@
                 android:contentDescription="Novel Image"
                 android:scaleType="fitXY" />
 
-            <!-- Icon trái tim -->
-
-            <ImageView
-                android:id="@+id/heartIcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignEnd="@id/novelImage"
-                android:layout_alignBottom="@id/novelImage"
-                android:layout_marginEnd="-51dp"
-                android:layout_marginBottom="1dp"
-                android:contentDescription="@string/heart_icon"
-                android:src="@drawable/ic_heart_empty" />
-
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:layout_width="231dp"
+                android:layout_height="201dp"
                 android:layout_toEndOf="@id/novelImage"
+                android:orientation="vertical"
                 android:paddingStart="16dp">
 
                 <!-- Thông tin truyện -->
@@ -56,36 +44,104 @@
                     android:layout_height="wrap_content"
                     android:text="Tên truyện: "
                     android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
 
                 <TextView
                     android:id="@+id/novelAuthor"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tác giả: " />
-
-                <TextView
-                    android:id="@+id/novelStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Tình trạng: " />
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Tác giả: "
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"/>
 
                 <TextView
                     android:id="@+id/novelGenre"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Thể loại: " />
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:text="Thể loại: "
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"/>
+
+                <!-- Thêm TextView cho ngày xuất bản -->
+                <TextView
+                    android:id="@+id/novelPublishDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Ngày xuất bản: "
+                    />
+
+                <TextView
+                    android:id="@+id/novelChapterCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:text="Số lượng chap: 0" />
+
+                <TextView
+                    android:id="@+id/novelStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Tình trạng: " />
             </LinearLayout>
         </RelativeLayout>
 
-        <!-- Nút đọc truyện -->
-        <Button
-            android:id="@+id/readButton"
+        <!-- Các nút thao tác -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/colorAccent"
-            android:text="Đọc truyện"
-            android:textColor="@android:color/white" />
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:gravity="center_vertical">
+
+            <!-- Nút đọc truyện -->
+            <Button
+                android:id="@+id/readButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/colorAccent"
+                android:text="Đọc truyện"
+                android:textColor="@android:color/white" />
+
+            <!-- Icon trái tim cho người dùng thường -->
+            <ImageView
+                android:id="@+id/heartIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:padding="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/heart_icon"
+                android:src="@drawable/ic_heart_empty" />
+
+            <!-- Nút sửa cho admin -->
+            <ImageButton
+                android:id="@+id/btnEditNovel"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Sửa truyện"
+                android:padding="8dp"
+                android:src="@drawable/ic_edit"
+                android:visibility="gone"
+                app:tint="@color/colorAccent" />
+        </LinearLayout>
 
         <!-- Cốt truyện -->
         <TextView
@@ -93,6 +149,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
+            android:paddingHorizontal="16dp"
             android:text="Cốt truyện"
             android:textStyle="bold" />
 
@@ -100,7 +157,13 @@
             android:id="@+id/storyContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="10dp" />
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="10dp"
+            android:maxLines="6"
+            android:ellipsize="end"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground" />
 
         <!-- Danh sách chương -->
         <TextView
@@ -108,6 +171,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
+            android:paddingHorizontal="16dp"
             android:text="Danh sách chương"
             android:textStyle="bold" />
 
@@ -120,20 +184,33 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false" />
-            <Button
-                android:id="@+id/btn_chapter"
-                android:layout_width="90dp"
-                android:layout_height="96dp"
-                android:layout_gravity="bottom|end"
-                android:layout_margin="25dp"
-                android:alpha="0.7"
-                android:backgroundTint="#CC9900"
-                android:padding="7dp"
-                android:text="+"
-                android:textSize="55dp"
-                android:visibility="visible" />
-
         </FrameLayout>
-
     </LinearLayout>
+
+    <!-- Thêm nút trang chủ (phía trên nút thêm) -->
+    <Button
+        android:id="@+id/btn_home"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="25dp"
+        android:layout_marginBottom="95dp"
+        android:alpha="0.7"
+        android:backgroundTint="#FF9800"
+        android:padding="7dp"
+        android:text="⌂"
+        android:textSize="34sp" />
+
+    <Button
+        android:id="@+id/btn_chapter"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="25dp"
+        android:alpha="0.7"
+        android:backgroundTint="#6669FF"
+        android:padding="7dp"
+        android:text="+"
+        android:textSize="34sp"
+        android:visibility="visible" />
 </FrameLayout>
