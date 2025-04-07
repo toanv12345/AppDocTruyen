@@ -36,7 +36,9 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DatabaseError;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class NovelsInfoActivity extends AppCompatActivity {
 
@@ -60,8 +62,9 @@ public class NovelsInfoActivity extends AppCompatActivity {
     private ImageView heartIcon;
     private ImageButton btnEditNovel;
     private Button btnAddChapter;
-    private Button btnHome; // Thêm nút trang chủ
+    private Button btnHome;
     private TextView chapterCount;
+    private Set<String> readChapterIds = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,11 +94,13 @@ public class NovelsInfoActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.addItemDecoration(new DividerItemDecoration(this));
         btnAddChapter = findViewById(R.id.btn_chapter);
-        btnHome = findViewById(R.id.btn_home); // Ánh xạ nút trang chủ
+        btnHome = findViewById(R.id.btn_home);
 
-        database = FirebaseDatabase.getInstance().getReference("truyen").child("truyen3").child("linkanh");
+        database = FirebaseDatabase.getInstance().getReference();
         String description = getIntent().getStringExtra("tomtat");
-        txt_description.setText(description);
+        if (description != null) {
+            txt_description.setText(description);
+        }
         setupTextViewPopups();
 
         novelId = getIntent().getStringExtra("novelId");
@@ -116,6 +121,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
         fetchChapters();
         fetchStoryDetails(novelId);
+        loadReadChapters();
 
         // Đọc từ đầu (chap 1)
         btnRead.setOnClickListener(v -> {
@@ -232,11 +238,15 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 });
 
                 runOnUiThread(() -> adapter.updateList(chapterList));
+
+                // Cập nhật danh sách chapter đã đọc sau khi tải xong danh sách chapter
+                loadReadChapters();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 // Xử lý lỗi
+                Toast.makeText(NovelsInfoActivity.this, "Lỗi khi tải danh sách chapter", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -259,7 +269,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 String coverUrl = dataSnapshot.child("linkanh").getValue(String.class);
                 String description = dataSnapshot.child("tomtat").getValue(String.class);
                 String status = dataSnapshot.child("tinhtrang").getValue(String.class);
-                String pubDate = dataSnapshot.child("ngayxuatban").getValue(String.class); // Lấy ngày xuất bản
+                String pubDate = dataSnapshot.child("ngayxuatban").getValue(String.class);
 
                 novelName.setText("Tên truyện: " + name);
                 auth.setText("Tác giả: " + author);
@@ -290,6 +300,33 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 Toast.makeText(NovelsInfoActivity.this, "Lỗi tải dữ liệu: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void loadReadChapters() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && adapter != null) {
+            DatabaseReference readChaptersRef = FirebaseDatabase.getInstance()
+                    .getReference("users")
+                    .child(currentUser.getUid())
+                    .child("readChapters")
+                    .child(novelId);
+
+            readChaptersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    readChapterIds.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        readChapterIds.add(snapshot.getKey());
+                    }
+                    adapter.setReadChapters(readChapterIds);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(NovelsInfoActivity.this, "Lỗi tải thông tin chapter đã đọc", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     private void checkFollowStatus() {
@@ -390,6 +427,13 @@ public class NovelsInfoActivity extends AppCompatActivity {
         fetchStoryDetails(novelId);
         fetchChapters();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadReadChapters();
+    }
+
     private void setupTextViewPopups() {
         // Setup popup cho tiêu đề
         novelName.setOnClickListener(v -> {
