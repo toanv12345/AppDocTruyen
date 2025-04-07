@@ -16,9 +16,11 @@
             android:layout_marginTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="50dp"
+            android:gravity="center"
             android:text="Danh sách theo dõi"
             android:background="@color/selected_item"
             android:textSize="30dp"
+            android:textColor="@color/black"
             android:textStyle="bold|italic">
         </TextView>
         <TextView

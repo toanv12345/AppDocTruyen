@@ -73,13 +73,11 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ChapterV
 
         // Kiểm tra xem chapter đã được đọc chưa
         if (readChapterIds.contains(chapter.getId())) {
-            // Nếu đã đọc, hiển thị nghiêng và màu xám
+            // Nếu đã đọc, hiển thị nghiêng, và màu đỏ
             holder.chapterTitle.setTypeface(holder.chapterTitle.getTypeface(), Typeface.ITALIC);
-            holder.chapterTitle.setTextColor(Color.GRAY);
+            holder.chapterTitle.setTextColor(Color.RED);
         } else {
-            // Nếu chưa đọc, hiển thị bình thường và màu đen
             holder.chapterTitle.setTypeface(holder.chapterTitle.getTypeface(), Typeface.NORMAL);
-            holder.chapterTitle.setTextColor(Color.BLACK);
         }
 
         holder.itemView.setOnClickListener(v -> {

@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Sắp xếp theo ngày mới nhất định dạng dd/MM/yyyy
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
                 novelArrayList.sort((novel1, novel2) -> {
                     String dateStr1 = getLatestChapterDate(novel1);
                     String dateStr2 = getLatestChapterDate(novel2);

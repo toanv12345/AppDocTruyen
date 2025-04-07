@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MetallicChapterStyle">
+        <item name="android:background">@drawable/bg_textview</item>
+        <item name="android:textColor">#DDDDDD</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:elevation">2dp</item>
+    </style>
+</resources>

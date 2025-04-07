@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colors for dark mode -->
+    <color name="chapter_title_color">#FFFFFF</color>  <!-- White for dark mode -->
+    <color name="chapter_date_color">#E0E0E0</color>   <!-- Light gray for dark mode -->
+</resources>

@@ -269,13 +269,31 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 String status = dataSnapshot.child("tinhtrang").getValue(String.class);
                 String pubDate = dataSnapshot.child("ngayxuatban").getValue(String.class);
 
-                novelName.setText("Tên truyện: " + name);
-                auth.setText("Tác giả: " + author);
-                genre.setText("Thể loại: " + category);
-                txt_description.setText(Html.fromHtml(description, Html.FROM_HTML_MODE_LEGACY));
-                stat.setText("Tình trạng: " + status);
-
-                // Hiển thị ngày xuất bản nếu có
+                if (name != null && !name.trim().isEmpty()) {
+                    novelName.setText(name);
+                } else {
+                    novelName.setText("Chưa cập nhật");
+                }
+                if (author != null && !author.trim().isEmpty()) {
+                    auth.setText("Tác giả: " + author);
+                } else {
+                    auth.setText("Tác giả: Chưa cập nhật");
+                }
+                if (category != null && !category.trim().isEmpty()) {
+                    genre.setText("Thể loại: " + category);
+                } else {
+                    genre.setText("Thể loại: Chưa cập nhật");
+                }
+                if (status != null && !status.trim().isEmpty()) {
+                    stat.setText("Tình trạng: " + status);
+                } else {
+                    stat.setText("Tình trạng: Chưa cập nhật");
+                }
+                if (description != null && !description.trim().isEmpty()) {
+                    txt_description.setText(Html.fromHtml(description));
+                } else {
+                    txt_description.setText("Chưa cập nhật");
+                }
                 if (pubDate != null && !pubDate.trim().isEmpty()) {
                     publishDate.setText("Ngày xuất bản: " + pubDate);
                     publishDate.setVisibility(View.VISIBLE);
@@ -468,27 +486,11 @@ public class NovelsInfoActivity extends AppCompatActivity {
             }
         });
 
-        // Setup popup cho cốt truyện
+
         txt_description.setOnClickListener(v -> {
             String description = txt_description.getText().toString();
             if (!description.isEmpty()) {
-                showPopup("Cốt truyện", description);
-            }
-        });
-
-        // Setup popup cho ngày xuất bản
-        publishDate.setOnClickListener(v -> {
-            String pubDateText = publishDate.getText().toString();
-            if (!pubDateText.isEmpty()) {
-                showPopup("Ngày xuất bản", pubDateText);
-            }
-        });
-
-        // Setup popup cho tình trạng
-        stat.setOnClickListener(v -> {
-            String status = stat.getText().toString();
-            if (!status.isEmpty()) {
-                showPopup("Tình trạng", status);
+                showPopup("Tóm tắt", description);
             }
         });
     }

@@ -161,7 +161,7 @@
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
             android:paddingHorizontal="16dp"
-            android:text="Cốt truyện"
+            android:text="Tóm tắt"
             android:textStyle="bold" />
 
         <TextView

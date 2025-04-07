@@ -13,6 +13,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textSize="16sp"
+        android:textColor="@color/chapter_title_color"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -22,7 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="12sp"
-        android:textColor="#757575"
+        android:textColor="@color/chapter_date_color"
         android:layout_marginTop="4dp"
         app:layout_constraintTop_toBottomOf="@id/tv_chapter_title"
         app:layout_constraintStart_toStartOf="parent" />
