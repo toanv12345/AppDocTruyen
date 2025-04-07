@@ -108,14 +108,25 @@
             android:paddingHorizontal="16dp"
             android:gravity="center_vertical">
 
-            <!-- Nút đọc truyện -->
+            <!-- Nút đọc từ đầu -->
             <Button
                 android:id="@+id/readButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="@color/colorAccent"
-                android:text="Đọc truyện"
+                android:text="Đọc từ đầu"
+                android:textColor="@android:color/white" />
+
+            <!-- Nút đọc mới nhất -->
+            <Button
+                android:id="@+id/readLatestButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="#4CAF50"
+                android:text="Đọc mới nhất"
+                android:layout_marginStart="8dp"
                 android:textColor="@android:color/white" />
 
             <!-- Icon trái tim cho người dùng thường -->

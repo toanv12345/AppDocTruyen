@@ -54,6 +54,8 @@ public class NovelsInfoActivity extends AppCompatActivity {
     private TextView novelName;
     private TextView publishDate;
     private Button btnRead;
+
+    private Button btnReadLatest;
     private boolean isHeartFilled = false;
     private ImageView heartIcon;
     private ImageButton btnEditNovel;
@@ -73,6 +75,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
         });
 
         btnRead = findViewById(R.id.readButton);
+        btnReadLatest = findViewById(R.id.readLatestButton);
         stat = findViewById(R.id.novelStatus);
         auth = findViewById(R.id.novelAuthor);
         genre = findViewById(R.id.novelGenre);
@@ -114,15 +117,29 @@ public class NovelsInfoActivity extends AppCompatActivity {
         fetchChapters();
         fetchStoryDetails(novelId);
 
+        // Đọc từ đầu (chap 1)
         btnRead.setOnClickListener(v -> {
             if (!chapterList.isEmpty()) {
                 Intent intent = new Intent(NovelsInfoActivity.this, ReadChapterActivity.class);
                 intent.putExtra("chapterList", new ArrayList<>(chapterList));
-                intent.putExtra("currentIndex", 0);
+                intent.putExtra("currentIndex", chapterList.size() - 1); // Index của chapter cuối cùng (cũ nhất)
                 intent.putExtra("novelId", novelId);
                 startActivity(intent);
             } else {
-                Toast.makeText(NovelsInfoActivity.this, "No chapters available", Toast.LENGTH_SHORT).show();
+                Toast.makeText(NovelsInfoActivity.this, "Không có chapter nào", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Đọc mới nhất
+        btnReadLatest.setOnClickListener(v -> {
+            if (!chapterList.isEmpty()) {
+                Intent intent = new Intent(NovelsInfoActivity.this, ReadChapterActivity.class);
+                intent.putExtra("chapterList", new ArrayList<>(chapterList));
+                intent.putExtra("currentIndex", 0); // Index của chapter đầu tiên (mới nhất)
+                intent.putExtra("novelId", novelId);
+                startActivity(intent);
+            } else {
+                Toast.makeText(NovelsInfoActivity.this, "Không có chapter nào", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -207,11 +224,11 @@ public class NovelsInfoActivity extends AppCompatActivity {
                     Toast.makeText(NovelsInfoActivity.this, "Không có chapter nào có nội dung!", Toast.LENGTH_SHORT).show();
                 }
 
-                // Sắp xếp chapter theo tên (tăng dần)
+                // Sắp xếp chapter theo ngày (giảm dần - mới nhất đến cũ nhất)
                 chapterList.sort((chapter1, chapter2) -> {
-                    String title1 = chapter1.getTitle();
-                    String title2 = chapter2.getTitle();
-                    return title1.compareTo(title2);
+                    String date1 = chapter1.getNgayup();
+                    String date2 = chapter2.getNgayup();
+                    return date2.compareTo(date1); // Đảo ngược so sánh để sắp xếp giảm dần
                 });
 
                 runOnUiThread(() -> adapter.updateList(chapterList));
@@ -219,8 +236,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(NovelsInfoActivity.this, "Lỗi tải chương: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-                chapterCount.setText("Số lượng chap: 0");
+                // Xử lý lỗi
             }
         });
     }
