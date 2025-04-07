@@ -1,9 +1,9 @@
-// FollowActivity.java
 package com.example.appdoctruyen.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,6 +31,7 @@ public class FollowActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FavoriteAdapter adapter;
     private List<Novel> favoriteNovelsList;
+    private Button btnHome; // Thêm biến cho nút trang chủ
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +55,15 @@ public class FollowActivity extends AppCompatActivity {
             startActivity(intent);
         });
         recyclerView.setAdapter(adapter);
+
+        // Ánh xạ và thiết lập sự kiện cho nút trang chủ
+        btnHome = findViewById(R.id.btn_home_follow);
+        btnHome.setOnClickListener(v -> {
+            Intent intent = new Intent(FollowActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        });
 
         fetchFavoriteNovels();
     }

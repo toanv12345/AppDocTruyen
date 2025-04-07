@@ -135,7 +135,16 @@ public class MainActivity extends AppCompatActivity {
 
         imgFollow.setOnClickListener(v -> {
             if (auth.getCurrentUser() == null) {
-                Toast.makeText(MainActivity.this, "Vui lòng đăng nhập để theo dõi!", Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Đăng nhập")
+                        .setMessage("Bạn cần đăng nhập để có thể theo dõi truyện!")
+                        .setPositiveButton("Đăng nhập ngay", (dialog, which) -> {
+                            // Chuyển đến màn hình đăng nhập
+                            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Để sau", (dialog, which) -> dialog.dismiss())
+                        .show();
             } else {
                 Intent intent = new Intent(MainActivity.this, FollowActivity.class);
                 startActivity(intent);

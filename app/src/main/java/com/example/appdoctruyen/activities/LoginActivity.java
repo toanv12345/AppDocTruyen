@@ -8,13 +8,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appdoctruyen.R;
-import com.example.appdoctruyen.activities.SignUpActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -25,10 +25,11 @@ import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private Button btnSignUp1;
+    private TextView txtSignUp; // Thay Button thành TextView
     private EditText editMail;
     private EditText editPass;
     private Button btnLogin;
+    private Button btnCancel; // Thêm nút Cancel
     private FirebaseAuth Auth;
     private ImageView account_Icon;
     private static final String TAG = "LoginActivity";
@@ -36,20 +37,18 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.login);
+        setContentView(R.layout.activity_login);
 
-        btnSignUp1 = findViewById(R.id.signup_btn);
+        txtSignUp = findViewById(R.id.signup_txt); // Thay đổi ID để match với layout mới
         btnLogin = findViewById(R.id.login_btn);
+        btnCancel = findViewById(R.id.cancel_button); // Ánh xạ nút Cancel
         editMail = findViewById(R.id.username_input);
         editPass = findViewById(R.id.password_input);
         Auth = FirebaseAuth.getInstance();
 
-        btnSignUp1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
-                startActivity(intent);
-            }
+        txtSignUp.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+            startActivity(intent);
         });
 
         btnLogin.setOnClickListener(v -> {
@@ -98,7 +97,16 @@ public class LoginActivity extends AppCompatActivity {
                     });
         });
 
+        // Thêm xử lý cho nút Cancel
+        btnCancel.setOnClickListener(v -> {
+            // Quay về màn hình chính (MainActivity)
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        });
     }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();

@@ -127,9 +127,25 @@ public class NovelsInfoActivity extends AppCompatActivity {
         });
 
         heartIcon.setOnClickListener(v -> {
-            isHeartFilled = !isHeartFilled;
-            heartIcon.setImageResource(isHeartFilled ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);
-            updateFollowStatus(novelId, isHeartFilled);
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                // Người dùng đã đăng nhập, cho phép theo dõi/hủy theo dõi
+                isHeartFilled = !isHeartFilled;
+                heartIcon.setImageResource(isHeartFilled ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);
+                updateFollowStatus(novelId, isHeartFilled);
+            } else {
+                // Người dùng chưa đăng nhập, hiển thị thông báo và chuyển đến màn hình đăng nhập
+                AlertDialog.Builder builder = new AlertDialog.Builder(NovelsInfoActivity.this);
+                builder.setTitle("Đăng nhập")
+                        .setMessage("Bạn cần đăng nhập để có thể theo dõi truyện!")
+                        .setPositiveButton("Đăng nhập ngay", (dialog, which) -> {
+                            // Chuyển đến màn hình đăng nhập
+                            Intent intent = new Intent(NovelsInfoActivity.this, LoginActivity.class);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Để sau", (dialog, which) -> dialog.dismiss())
+                        .show();
+            }
         });
 
         btnEditNovel.setOnClickListener(v -> {
