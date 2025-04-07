@@ -1,19 +1,28 @@
 package com.example.appdoctruyen.activities;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appdoctruyen.R;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class AddChapterActivity extends AppCompatActivity {
     private EditText edtChapterTitle, edtChapterNgayup, edtChapterNoidung;
@@ -21,6 +30,7 @@ public class AddChapterActivity extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private String novelId;
     private int chapterCount = 0;
+    private Calendar calendar = Calendar.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,8 +42,35 @@ public class AddChapterActivity extends AppCompatActivity {
         edtChapterNoidung = findViewById(R.id.edt_new_chapter_noidung);
         btnAddChapter = findViewById(R.id.btnAddChapter);
 
+        // Set current date as default
+        updateDateLabel();
+
         novelId = getIntent().getStringExtra("novelId");
+        if (novelId == null || novelId.isEmpty()) {
+            Toast.makeText(this, "Không tìm thấy ID truyện", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         databaseReference = FirebaseDatabase.getInstance().getReference("truyen").child(novelId).child("chapter");
+
+        // Setup DatePicker for upload date
+        final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                calendar.set(Calendar.YEAR, year);
+                calendar.set(Calendar.MONTH, monthOfYear);
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                updateDateLabel();
+            }
+        };
+
+        edtChapterNgayup.setOnClickListener(v -> {
+            new DatePickerDialog(AddChapterActivity.this, dateSetListener,
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)).show();
+        });
 
         // Get the current count of chapters to generate the next key
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -42,9 +79,13 @@ public class AddChapterActivity extends AppCompatActivity {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     String key = snapshot.getKey();
                     if (key != null && key.startsWith("chap")) {
-                        int number = Integer.parseInt(key.substring(4));
-                        if (number > chapterCount) {
-                            chapterCount = number;
+                        try {
+                            int number = Integer.parseInt(key.substring(4));
+                            if (number > chapterCount) {
+                                chapterCount = number;
+                            }
+                        } catch (NumberFormatException e) {
+                            // Bỏ qua nếu không phải số
                         }
                     }
                 }
@@ -52,34 +93,61 @@ public class AddChapterActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                // Handle possible errors.
+                Toast.makeText(AddChapterActivity.this, "Lỗi: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
-        btnAddChapter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String title = edtChapterTitle.getText().toString();
-                String noidung = edtChapterNoidung.getText().toString();
-                String ngayup = edtChapterNgayup.getText().toString();
+        btnAddChapter.setOnClickListener(v -> {
+            String title = edtChapterTitle.getText().toString().trim();
+            String noidung = edtChapterNoidung.getText().toString().trim();
+            String ngayup = edtChapterNgayup.getText().toString().trim();
 
-                if (title.isEmpty() || noidung.isEmpty() || ngayup.isEmpty()) {
-                    Toast.makeText(AddChapterActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-                } else {
-                    String chapterId = "chap" + (chapterCount + 1);
-                    DatabaseReference chapterRef = databaseReference.child(chapterId);
-                    chapterRef.child("title").setValue(title);
-                    chapterRef.child("noidung").setValue(noidung);
-                    chapterRef.child("ngayup").setValue(ngayup)
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(AddChapterActivity.this, "Chapter added successfully", Toast.LENGTH_SHORT).show();
-                                finish();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(AddChapterActivity.this, "Failed to add chapter: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            });
-                }
+            // Hiển thị dialog loading
+            AlertDialog loadingDialog = showLoadingDialog();
+
+            if (title.isEmpty()) {
+                loadingDialog.dismiss();
+                edtChapterTitle.setError("Vui lòng nhập tên chapter");
+                return;
             }
+
+            if (noidung.isEmpty()) {
+                loadingDialog.dismiss();
+                edtChapterNoidung.setError("Vui lòng nhập nội dung chapter");
+                return;
+            }
+
+            String chapterId = "chap" + (chapterCount + 1);
+
+            Map<String, Object> chapterData = new HashMap<>();
+            chapterData.put("title", title);
+            chapterData.put("noidung", noidung);
+            chapterData.put("ngayup", ngayup);
+
+            DatabaseReference chapterRef = databaseReference.child(chapterId);
+            chapterRef.setValue(chapterData)
+                    .addOnSuccessListener(aVoid -> {
+                        loadingDialog.dismiss();
+                        Toast.makeText(AddChapterActivity.this, "Thêm chapter thành công", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        loadingDialog.dismiss();
+                        Toast.makeText(AddChapterActivity.this, "Lỗi khi thêm chapter: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
         });
+    }
+
+    private void updateDateLabel() {
+        String format = "dd/MM/yyyy";
+        SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
+        edtChapterNgayup.setText(sdf.format(calendar.getTime()));
+    }
+
+    private AlertDialog showLoadingDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(R.layout.dialog_loading);
+        builder.setCancelable(false);
+        return builder.show();
     }
 }

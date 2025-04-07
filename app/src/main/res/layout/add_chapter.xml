@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:backgroundTint="#CCFFFF"
-    android:background="@color/white">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,74 +11,63 @@
         android:padding="16dp">
 
         <TextView
-            android:layout_marginTop="30dp"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add Chapter"
-            android:textSize="30sp"
+            android:text="Thêm chapter mới"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_gravity="center" />
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
 
-        <DatePicker
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
-            android:background="@drawable/edittext_rounded"
-            android:padding="12dp"
-            android:id="@+id/ngayup">
-        </DatePicker>
-
-        <EditText
-            android:layout_marginTop="20dp"
-            android:id="@+id/edt_new_chapter_ngayup"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColorHint="@color/material_dynamic_neutral80"
-            android:textStyle="italic"
-            android:hint="Ngay up"
-            android:padding="12dp"
-            android:background="@drawable/edittext_rounded"
-            android:textColor="@color/black"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginTop="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <EditText
-            android:id="@+id/edt_new_chapter_title"
+            <EditText
+                android:id="@+id/edt_new_chapter_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tên chapter" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/edittext_rounded"
-            android:hint="Title"
-            android:padding="12dp"
-            android:textColor="@color/black"
-            android:textColorHint="@color/material_dynamic_neutral80"
-            android:textStyle="italic"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginTop="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-        <EditText
-            android:id="@+id/edt_new_chapter_noidung"
+            <EditText
+                android:id="@+id/edt_new_chapter_ngayup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Ngày đăng"
+                android:focusable="false"
+                android:clickable="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Noi dung Chapter"
-            android:textColorHint="@color/material_dynamic_neutral80"
-            android:textStyle="italic"
-            android:background="@drawable/edittext_rounded"
-            android:padding="12dp"
-            android:textColor="@color/black"
-            android:layout_marginBottom="16dp"
-            android:inputType="textMultiLine"
-            android:minLines="3"/>
+            android:layout_marginTop="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <EditText
+                android:id="@+id/edt_new_chapter_noidung"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:hint="Nội dung chapter" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <Button
             android:id="@+id/btnAddChapter"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Add Chapter"
-            android:textColor="@color/white"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:backgroundTint="@color/black"
-            android:layout_marginTop="16dp"/>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Thêm chapter" />
 
     </LinearLayout>
 </ScrollView>

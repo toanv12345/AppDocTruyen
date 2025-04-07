@@ -23,7 +23,9 @@
         android:id="@+id/favorite_title"
         android:text="Tenaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         android:layout_marginLeft="10dp"
-        android:textSize="17dp">
+        android:textSize="17dp"
+        android:maxLines="2"
+        android:ellipsize="end">
     </TextView>
 
     <ImageButton

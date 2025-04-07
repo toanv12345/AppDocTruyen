@@ -3,7 +3,6 @@ package com.example.appdoctruyen.activities;
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -16,7 +15,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -27,8 +25,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -38,15 +34,13 @@ import java.util.Map;
 
 public class EditNovelActivity extends AppCompatActivity {
 
-    private EditText edtTitle, edtAuthor, edtGenre, edtPublishDate, edtSummary;
+    private EditText edtTitle, edtAuthor, edtGenre, edtPublishDate, edtSummary, edtCoverUrl;
     private TextView tvChapterCount;
     private ImageView imgCover;
-    private Button btnSelectCover, btnUpdateNovel, btnDeleteNovel;
+    private Button btnPreviewImage, btnUpdateNovel, btnDeleteNovel;
     private Spinner spinnerStatus;
 
     private String novelId;
-    private Uri imageUri;
-    private static final int PICK_IMAGE_REQUEST = 1;
     private Calendar calendar = Calendar.getInstance();
 
     // Mảng giá trị tình trạng
@@ -54,7 +48,6 @@ public class EditNovelActivity extends AppCompatActivity {
     private int selectedStatusPosition = 0;
 
     private DatabaseReference novelRef;
-    private StorageReference storageRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +56,6 @@ public class EditNovelActivity extends AppCompatActivity {
 
         // Initialize Firebase
         novelRef = FirebaseDatabase.getInstance().getReference("truyen");
-        storageRef = FirebaseStorage.getInstance().getReference("covers");
 
         // Initialize views
         edtTitle = findViewById(R.id.edtTitleNovel);
@@ -71,9 +63,10 @@ public class EditNovelActivity extends AppCompatActivity {
         edtGenre = findViewById(R.id.edtGenre);
         edtPublishDate = findViewById(R.id.edtPublishDate);
         edtSummary = findViewById(R.id.edtSummary);
+        edtCoverUrl = findViewById(R.id.edtCoverUrl); // Ánh xạ EditText URL ảnh mới
         tvChapterCount = findViewById(R.id.tvChapterCount);
         imgCover = findViewById(R.id.imgCoverNovel);
-        btnSelectCover = findViewById(R.id.btnSelectCover);
+        btnPreviewImage = findViewById(R.id.btnPreviewImage); // Ánh xạ nút Xem trước
         btnUpdateNovel = findViewById(R.id.btnUpdateNovel);
         btnDeleteNovel = findViewById(R.id.btnDeleteNovel);
         spinnerStatus = findViewById(R.id.spinnerStatus);
@@ -126,12 +119,32 @@ public class EditNovelActivity extends AppCompatActivity {
                     calendar.get(Calendar.DAY_OF_MONTH)).show();
         });
 
+        // Thiết lập sự kiện khi nhấn nút Xem trước ảnh
+        btnPreviewImage.setOnClickListener(v -> {
+            String imageUrl = edtCoverUrl.getText().toString().trim();
+            if (!imageUrl.isEmpty()) {
+                loadImageFromUrl(imageUrl);
+            } else {
+                Toast.makeText(EditNovelActivity.this, "Vui lòng nhập URL ảnh", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         // Set click listeners
-        btnSelectCover.setOnClickListener(v -> openFileChooser());
-
         btnUpdateNovel.setOnClickListener(v -> updateNovel());
-
         btnDeleteNovel.setOnClickListener(v -> confirmDeleteNovel());
+    }
+
+    // Phương thức tải ảnh từ URL
+    private void loadImageFromUrl(String imageUrl) {
+        try {
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.placeholder_image)
+                    .error(R.drawable.placeholder_image)
+                    .into(imgCover);
+        } catch (Exception e) {
+            Toast.makeText(this, "Không thể tải ảnh từ URL này", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void updateDateLabel() {
@@ -179,6 +192,7 @@ public class EditNovelActivity extends AppCompatActivity {
                 edtGenre.setText(genre != null ? genre : "");
                 edtPublishDate.setText(publishDate != null ? publishDate : "");
                 edtSummary.setText(summary != null ? summary : "");
+                edtCoverUrl.setText(coverUrl != null ? coverUrl : ""); // Đặt URL ảnh hiện tại
 
                 // Set spinner selection based on status value
                 if (status != null) {
@@ -193,34 +207,13 @@ public class EditNovelActivity extends AppCompatActivity {
                 }
 
                 if (coverUrl != null && !coverUrl.isEmpty()) {
-                    Glide.with(this)
-                            .load(coverUrl)
-                            .placeholder(R.drawable.placeholder_image)
-                            .into(imgCover);
+                    loadImageFromUrl(coverUrl);
                 }
             }
         }).addOnFailureListener(e -> {
             Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             finish();
         });
-    }
-
-    private void openFileChooser() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
-                && data != null && data.getData() != null) {
-            imageUri = data.getData();
-            Glide.with(this).load(imageUri).into(imgCover);
-        }
     }
 
     private void updateNovel() {
@@ -230,6 +223,7 @@ public class EditNovelActivity extends AppCompatActivity {
         String publishDate = edtPublishDate.getText().toString().trim();
         String summary = edtSummary.getText().toString().trim();
         String status = statusOptions[selectedStatusPosition];
+        String coverUrl = edtCoverUrl.getText().toString().trim();
 
         if (title.isEmpty()) {
             edtTitle.setError("Vui lòng nhập tên truyện");
@@ -248,24 +242,13 @@ public class EditNovelActivity extends AppCompatActivity {
         novelUpdates.put("tomtat", summary);
         novelUpdates.put("tinhtrang", status);
 
-        if (imageUri != null) {
-            // Upload ảnh mới lên Firebase Storage
-            String timestamp = String.valueOf(System.currentTimeMillis());
-            StorageReference fileRef = storageRef.child(novelId + "_" + timestamp + ".jpg");
-
-            fileRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
-                fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                    novelUpdates.put("linkanh", uri.toString());
-                    updateNovelData(novelUpdates, loadingDialog);
-                });
-            }).addOnFailureListener(e -> {
-                loadingDialog.dismiss();
-                Toast.makeText(EditNovelActivity.this, "Lỗi tải ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            });
-        } else {
-            // Cập nhật dữ liệu mà không thay đổi ảnh
-            updateNovelData(novelUpdates, loadingDialog);
+        // Thêm URL ảnh vào dữ liệu cập nhật nếu có
+        if (!coverUrl.isEmpty()) {
+            novelUpdates.put("linkanh", coverUrl);
         }
+
+        // Cập nhật dữ liệu
+        updateNovelData(novelUpdates, loadingDialog);
     }
 
     private void updateNovelData(Map<String, Object> novelUpdates, AlertDialog loadingDialog) {

@@ -120,23 +120,46 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:orientation="vertical"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ảnh bìa"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
 
             <ImageView
                 android:id="@+id/imgCoverNovel"
-                android:layout_width="120dp"
-                android:layout_height="180dp"
-                android:scaleType="centerCrop"
-                android:background="@drawable/image_border"/>
+                android:layout_width="150dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/placeholder_image"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="URL ảnh bìa">
+
+                <EditText
+                    android:id="@+id/edtCoverUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <Button
-                android:id="@+id/btnSelectCover"
+                android:id="@+id/btnPreviewImage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="16dp"
-                android:text="Chọn Ảnh Bìa" />
+                android:text="Xem trước ảnh"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"/>
         </LinearLayout>
 
         <Button

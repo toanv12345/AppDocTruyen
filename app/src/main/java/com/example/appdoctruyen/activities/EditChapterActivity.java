@@ -105,7 +105,7 @@ public class EditChapterActivity extends AppCompatActivity {
     }
 
     private void updateDateLabel() {
-        String format = "M/d/yyyy";
+        String format = "dd/MM/yyyy";
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
         edtUploadDate.setText(sdf.format(calendar.getTime()));
     }
