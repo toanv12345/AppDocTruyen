@@ -1,10 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
-    <color name="red">#FF0000</color>
     <color name="selected_item">#FFDDDD</color>
+    <color name="red">#FF0000</color>
+
+    <!-- Traditional Android color naming (needed for compatibility) -->
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <!-- Material Design color naming -->
+    <color name="primary_color">#3F51B5</color>
+    <color name="primary_color_dark">#303F9F</color>
+    <color name="primary_color_darker">#1A237E</color>
+
+    <!-- Accent colors -->
+    <color name="accent_color">#FF4081</color>
+    <color name="accent_color_dark">#F50057</color>
+    <color name="accent_color_darker">#C51162</color>
+
+    <!-- Light theme specific colors -->
+    <color name="light_background">#FAFAFA</color>
+    <color name="light_text">#212121</color>
+
+    <!-- Dark theme specific colors -->
+    <color name="dark_background">#121212</color>
+    <color name="dark_text">#FFFFFF</color>
 </resources>
