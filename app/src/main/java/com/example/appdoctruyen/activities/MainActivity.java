@@ -5,11 +5,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -46,7 +49,14 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Novel> novelArrayList;
     private Button btnNextPage, btnPrevPage;
     private int currentPage = 0;
-    private static final int ITEMS_PER_PAGE = 12;
+    private final int[] imageArray = {
+            R.mipmap.test1,
+            R.mipmap.test2,
+            R.mipmap.test3
+    };
+    private int currentIndex = 0;
+    private ViewFlipper imgNen;
+    private static final int ITEMS_PER_PAGE = 18;
 
     private ImageView accountIcon;
     private FirebaseAuth auth;
@@ -64,12 +74,15 @@ public class MainActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference("truyen");
 
+
         init();
         anhXa();
         setUp();
         setClick();
         checkLoginStatus();
         checkAdminStatus();
+        startImageSlideshow();
+
         //createDefaultAdminAccount(); //vì tạo tài khoản admin mặc định nên chỉ cần chạy 1 lần
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -108,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.search_view);
         imgFollow = findViewById(R.id.img_follow);
         btnAdd = findViewById(R.id.btn_add);
+        imgNen = findViewById(R.id.viewFlipper);
     }
 
     private void setUp() {
@@ -353,5 +367,19 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return latestChapterName;
+    }
+    private void startImageSlideshow() {
+        // Thiết lập animation lướt sang trái cho ViewFlipper
+        Animation in = AnimationUtils.loadAnimation(this, R.anim.slide_in_right);
+        Animation out = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
+
+        imgNen.setInAnimation(in);
+        imgNen.setOutAnimation(out);
+
+        // Thời gian chuyển đổi ảnh (3 giây)
+        imgNen.setFlipInterval(4500);
+
+        // Bắt đầu tự động lật
+        imgNen.startFlipping();
     }
 }

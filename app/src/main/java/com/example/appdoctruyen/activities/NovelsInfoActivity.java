@@ -21,13 +21,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.firebase.auth.FirebaseAuth;
 
 import com.bumptech.glide.Glide;
 import com.example.appdoctruyen.R;
 import com.example.appdoctruyen.adapter.ChapterAdapter;
 import com.example.appdoctruyen.decor.DividerItemDecoration;
 import com.example.appdoctruyen.object.Chapter;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -102,7 +102,6 @@ public class NovelsInfoActivity extends AppCompatActivity {
             txt_description.setText(description);
         }
         setupTextViewPopups();
-
         novelId = getIntent().getStringExtra("novelId");
         if (novelId == null || novelId.isEmpty()) {
             Toast.makeText(this, "Invalid novel ID", Toast.LENGTH_SHORT).show();
@@ -122,7 +121,6 @@ public class NovelsInfoActivity extends AppCompatActivity {
         fetchChapters();
         fetchStoryDetails(novelId);
         loadReadChapters();
-
         // Đọc từ đầu (chap 1)
         btnRead.setOnClickListener(v -> {
             if (!chapterList.isEmpty()) {
@@ -354,6 +352,10 @@ public class NovelsInfoActivity extends AppCompatActivity {
                     Toast.makeText(NovelsInfoActivity.this, "Lỗi tải trạng thái theo dõi: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
+        } else {
+            // Người dùng chưa đăng nhập, hiển thị trái tim rỗng
+            isHeartFilled = false;
+            heartIcon.setImageResource(R.drawable.ic_heart_empty);
         }
     }
 
@@ -384,10 +386,10 @@ public class NovelsInfoActivity extends AppCompatActivity {
             }
         }
     }
-
     private void checkIfAdmin() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
+            // Người dùng đã đăng nhập - kiểm tra quyền admin
             DatabaseReference userRef = FirebaseDatabase.getInstance()
                     .getReference("users")
                     .child(currentUser.getUid());
@@ -418,6 +420,11 @@ public class NovelsInfoActivity extends AppCompatActivity {
                     heartIcon.setVisibility(View.VISIBLE);
                 }
             });
+        } else {
+            // Người dùng chưa đăng nhập - ẩn các nút dành cho admin
+            btnAddChapter.setVisibility(View.GONE);
+            btnEditNovel.setVisibility(View.GONE);
+            heartIcon.setVisibility(View.VISIBLE);
         }
     }
 
@@ -426,12 +433,14 @@ public class NovelsInfoActivity extends AppCompatActivity {
         super.onRestart();
         fetchStoryDetails(novelId);
         fetchChapters();
+        checkIfAdmin();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadReadChapters();
+        checkIfAdmin();
     }
 
     private void setupTextViewPopups() {

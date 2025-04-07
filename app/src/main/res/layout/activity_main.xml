@@ -46,12 +46,33 @@
 
     </RelativeLayout>
 
-    <ImageView
-        android:id="@+id/slide"
+    <ViewFlipper
+        android:id="@+id/viewFlipper"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:background="@color/black"
-        android:src="@mipmap/test1" />
+        android:layout_height="wrap_content"
+        android:autoStart="false">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/test1" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/test2" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/test3" />
+    </ViewFlipper>
 
     <TextView
         android:layout_width="match_parent"
