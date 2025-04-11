@@ -156,7 +156,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="donate: 9357413940 - VietCombank"
+        android:text="Donate: 1027117601 - Vietcombank - Nguyen Tien Toan"
         android:textColor="@color/material_dynamic_neutral30"
         android:textSize="13sp"
         android:textStyle="italic">
