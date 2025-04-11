@@ -1,0 +1,6 @@
+tk admin: admin@gmail.com - admin123
+
+tk users:
+
+user1 : user1@email.com - 123456
+user2: user2@email.com - 123456
