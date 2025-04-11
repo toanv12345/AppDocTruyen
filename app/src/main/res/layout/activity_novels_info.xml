@@ -81,6 +81,9 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="Ngày xuất bản: "
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     />
 
                 <TextView
@@ -96,7 +99,10 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="Tình trạng: " />
+                    android:text="Tình trạng: "
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"/>
             </LinearLayout>
         </RelativeLayout>
 
@@ -111,7 +117,7 @@
             <!-- Nút đọc từ đầu -->
             <Button
                 android:id="@+id/readButton"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="@color/colorAccent"
@@ -121,7 +127,7 @@
             <!-- Nút đọc mới nhất -->
             <Button
                 android:id="@+id/readLatestButton"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="#4CAF50"
@@ -132,12 +138,12 @@
             <!-- Icon trái tim cho người dùng thường -->
             <ImageView
                 android:id="@+id/heartIcon"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginStart="8dp"
-                android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/heart_icon"
+                android:padding="8dp"
                 android:src="@drawable/ic_heart_empty" />
 
             <!-- Nút sửa cho admin -->

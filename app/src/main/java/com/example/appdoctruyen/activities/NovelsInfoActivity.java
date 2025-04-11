@@ -493,6 +493,18 @@ public class NovelsInfoActivity extends AppCompatActivity {
                 showPopup("Tóm tắt", description);
             }
         });
+        publishDate.setOnClickListener(v -> {
+            String description = txt_description.getText().toString();
+            if (!description.isEmpty()) {
+                showPopup("Ngày xuất bản", description);
+            }
+        });
+        stat.setOnClickListener(v -> {
+            String status = stat.getText().toString();
+            if (!status.isEmpty()) {
+                showPopup("Tình trạng", status);
+            }
+        });
     }
 
     private void showPopup(String title, String content) {
