@@ -7,13 +7,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appdoctruyen.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference; // Thêm import cho Realtime Database
-import com.google.firebase.database.FirebaseDatabase; // Thêm import cho Realtime Database
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText editPass;
     private FirebaseAuth Auth;
     private FirebaseFirestore db;
-    private DatabaseReference dbRef; // Thêm biến cho Realtime Database
+    private DatabaseReference dbRef;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,7 +43,7 @@ public class SignUpActivity extends AppCompatActivity {
 
         Auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        dbRef = FirebaseDatabase.getInstance().getReference(); // Khởi tạo Realtime Database
+        dbRef = FirebaseDatabase.getInstance().getReference();
 
         btnSignUp.setOnClickListener(v -> {
             String email = editMail.getText().toString();
@@ -60,35 +61,40 @@ public class SignUpActivity extends AppCompatActivity {
 
                     FirebaseUser currentUser = Auth.getCurrentUser();
                     if (currentUser != null) {
-                        // Lưu thông tin người dùng vào Firestore
-                        Map<String, Object> user = new HashMap<>();
-                        user.put("email", email);
-                        user.put("favorite", new ArrayList<String>());
+                        // Gửi email xác thực
+                        currentUser.sendEmailVerification().addOnCompleteListener(verifyTask -> {
+                            if (verifyTask.isSuccessful()) {
+                                // Lưu thông tin người dùng vào Firestore
+                                Map<String, Object> user = new HashMap<>();
+                                user.put("email", email);
+                                user.put("favorite", new ArrayList<String>());
 
-                        db.collection("users").document(currentUser.getUid())
-                                .set(user)
-                                .addOnSuccessListener(aVoid -> {
-                                    // Lưu thông tin người dùng vào Realtime Database
-                                    DatabaseReference userRef = dbRef.child("users").child(currentUser.getUid());
-                                    Map<String, Object> userData = new HashMap<>();
-                                    userData.put("email", email);
-                                    userData.put("isAdmin", false); // Mặc định không phải admin
+                                db.collection("users").document(currentUser.getUid())
+                                        .set(user)
+                                        .addOnSuccessListener(aVoid -> {
+                                            // Lưu thông tin người dùng vào Realtime Database
+                                            DatabaseReference userRef = dbRef.child("users").child(currentUser.getUid());
+                                            Map<String, Object> userData = new HashMap<>();
+                                            userData.put("email", email);
+                                            userData.put("isAdmin", false); // Mặc định không phải admin
+                                            userData.put("emailVerified", false); // Thêm trạng thái xác thực email
 
-                                    userRef.setValue(userData).addOnCompleteListener(task1 -> {
-                                        if (task1.isSuccessful()) {
-                                            // Tự động đăng nhập và chuyển đến MainActivity
-                                            Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
-                                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                            startActivity(intent);
-                                            finish();
-                                        } else {
+                                            userRef.setValue(userData).addOnCompleteListener(task1 -> {
+                                                if (task1.isSuccessful()) {
+                                                    // Hiển thị thông báo nhưng vẫn giữ phiên đăng nhập hiện tại
+                                                    showVerificationDialog(email);
+                                                } else {
+                                                    Toast.makeText(SignUpActivity.this, "Lỗi khi lưu thông tin người dùng!", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        })
+                                        .addOnFailureListener(e -> {
                                             Toast.makeText(SignUpActivity.this, "Lỗi khi lưu thông tin người dùng!", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(SignUpActivity.this, "Lỗi khi lưu thông tin người dùng!", Toast.LENGTH_SHORT).show();
-                                });
+                                        });
+                            } else {
+                                Toast.makeText(SignUpActivity.this, "Không thể gửi email xác thực.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     } else {
                         Toast.makeText(SignUpActivity.this, "Lỗi khi lấy thông tin người dùng!", Toast.LENGTH_SHORT).show();
                     }
@@ -104,5 +110,21 @@ public class SignUpActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    // Hiển thị hộp thoại thông báo yêu cầu xác thực email
+    private void showVerificationDialog(String email) {
+        new AlertDialog.Builder(this)
+                .setTitle("Xác thực email")
+                .setMessage("Chúng tôi đã gửi một email xác thực đến " + email + ". Vui lòng kiểm tra hộp thư và xác thực email của bạn để sử dụng đầy đủ tính năng của ứng dụng.")
+                .setPositiveButton("Tiếp tục", (dialog, which) -> {
+                    // Người dùng đã đăng nhập, chuyển thẳng đến trang chính
+                    Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setCancelable(false)
+                .show();
     }
 }

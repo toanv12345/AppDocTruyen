@@ -3,12 +3,14 @@ package com.example.appdoctruyen.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.SearchView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
@@ -26,6 +28,7 @@ import com.example.appdoctruyen.R;
 import com.example.appdoctruyen.adapter.NovelAdapter;
 import com.example.appdoctruyen.object.Chapter;
 import com.example.appdoctruyen.object.Novel;
+import com.example.appdoctruyen.utils.EmailVerificationChecker;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -91,7 +94,23 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         retrieveDataFromFirebase();
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null && !currentUser.isEmailVerified()) {
+            EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
+                @Override
+                public void onVerified() {
+                    // Email đã được xác thực, không cần làm gì thêm
+                }
 
+                @Override
+                public void onNotVerified() {
+                    // Email vẫn chưa được xác thực, hiển thị thông báo nhắc nhở
+                    Toast.makeText(MainActivity.this,
+                            "Vui lòng xác thực email để sử dụng đầy đủ tính năng của ứng dụng",
+                            Toast.LENGTH_LONG).show();
+                }
+            });
+        }
         // Set up SearchView listener
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -138,9 +157,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setClick() {
+        // Thay đổi xử lý click cho accountIcon
         accountIcon.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
+            FirebaseUser user = auth.getCurrentUser();
+            if (user != null) {
+                // Người dùng đã đăng nhập, hiển thị menu
+                showAccountMenu(v);
+            } else {
+                // Người dùng chưa đăng nhập, chuyển đến màn hình đăng nhập
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
         });
 
         btnAdd.setOnClickListener(v -> {
@@ -152,20 +179,34 @@ public class MainActivity extends AppCompatActivity {
         btnPrevPage.setOnClickListener(v -> prevPage());
 
         imgFollow.setOnClickListener(v -> {
-            if (auth.getCurrentUser() == null) {
+            FirebaseUser currentUser = auth.getCurrentUser();
+            if (currentUser == null) {
+                // Người dùng chưa đăng nhập
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Đăng nhập")
                         .setMessage("Bạn cần đăng nhập để có thể theo dõi truyện!")
                         .setPositiveButton("Đăng nhập ngay", (dialog, which) -> {
-                            // Chuyển đến màn hình đăng nhập
                             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                             startActivity(intent);
                         })
                         .setNegativeButton("Để sau", (dialog, which) -> dialog.dismiss())
                         .show();
             } else {
-                Intent intent = new Intent(MainActivity.this, FollowActivity.class);
-                startActivity(intent);
+                // Kiểm tra xác thực email
+                EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
+                    @Override
+                    public void onVerified() {
+                        // Email đã xác thực, cho phép truy cập danh sách theo dõi
+                        Intent intent = new Intent(MainActivity.this, FollowActivity.class);
+                        startActivity(intent);
+                    }
+
+                    @Override
+                    public void onNotVerified() {
+                        // Email chưa xác thực
+                        EmailVerificationChecker.showVerificationDialog(MainActivity.this, true);
+                    }
+                });
             }
         });
 
@@ -176,11 +217,51 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("tomtat", novel.getTomtat());
             startActivity(intent);
         });
+    }
 
-        // đăng xuất
-        accountIcon.setOnClickListener(v -> {
-            FirebaseUser user = auth.getCurrentUser();
-            if (user != null) {
+    // Thêm phương thức để hiển thị menu khi click vào account icon
+    private void showAccountMenu(View view) {
+        PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
+        popupMenu.getMenuInflater().inflate(R.menu.account_menu, popupMenu.getMenu());
+
+        // Chỉ hiển thị tùy chọn "Kiểm tra xác thực email" nếu người dùng chưa xác thực
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser != null && currentUser.isEmailVerified()) {
+            popupMenu.getMenu().findItem(R.id.menu_verify_status).setVisible(false);
+        }
+
+        popupMenu.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+
+            if (id == R.id.menu_verify_status) {
+                EmailVerificationChecker.showVerificationDialog(MainActivity.this, true);
+                return true;
+            } else if (id == R.id.menu_change_password) {
+                // Kiểm tra xác thực email trước khi cho phép đổi mật khẩu
+                if (currentUser != null && !currentUser.isEmailVerified()) {
+                    // Kiểm tra lại trạng thái xác thực (có thể đã xác thực nhưng chưa cập nhật)
+                    EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
+                        @Override
+                        public void onVerified() {
+                            // Đã xác thực, chuyển đến màn hình đổi mật khẩu
+                            Intent intent = new Intent(MainActivity.this, ChangePasswordActivity.class);
+                            startActivity(intent);
+                        }
+
+                        @Override
+                        public void onNotVerified() {
+                            // Vẫn chưa xác thực, hiển thị thông báo
+                            EmailVerificationChecker.showVerificationDialog(MainActivity.this, true);
+                        }
+                    });
+                } else {
+                    // Chuyển đến màn hình đổi mật khẩu
+                    Intent intent = new Intent(MainActivity.this, ChangePasswordActivity.class);
+                    startActivity(intent);
+                }
+                return true;
+            } else if (id == R.id.menu_logout) {
+                // Xử lý đăng xuất
                 new AlertDialog.Builder(MainActivity.this)
                         .setTitle("Đăng xuất")
                         .setMessage("Bạn có chắc chắn muốn đăng xuất?")
@@ -192,13 +273,33 @@ public class MainActivity extends AppCompatActivity {
                         })
                         .setNegativeButton("Không", null)
                         .show();
-            } else {
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
+        popupMenu.show();
+    }
+    private void showEmailVerificationRequired() {
+        FirebaseUser user = auth.getCurrentUser();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Xác thực email");
+        builder.setMessage("Bạn cần xác thực email để sử dụng tính năng này. Xác thực email cũng giúp bạn khôi phục tài khoản khi quên mật khẩu.");
+
+        builder.setPositiveButton("Gửi lại email xác thực", (dialog, which) -> {
+            if (user != null) {
+                user.sendEmailVerification().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(MainActivity.this, "Đã gửi email xác thực. Vui lòng kiểm tra hộp thư của bạn.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Không thể gửi email xác thực: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         });
-    }
 
+        builder.setNegativeButton("Đóng", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
     private void nextPage() {
         if ((currentPage + 1) * ITEMS_PER_PAGE < novelArrayList.size()) {
             currentPage++;
@@ -268,6 +369,7 @@ public class MainActivity extends AppCompatActivity {
             accountIcon.setImageResource( R.drawable.img_login_foreground);
         }
     }
+
     // tim kiem truyen
     private void filterNovels(String query) {
         ArrayList<Novel> filteredList = new ArrayList<>();
@@ -300,7 +402,11 @@ public class MainActivity extends AppCompatActivity {
         }
         return latestDate;
     }
-
+    private void showEmailVerificationBanner() {
+        Toast.makeText(this,
+                "Vui lòng xác thực email để sử dụng đầy đủ tính năng của ứng dụng",
+                Toast.LENGTH_LONG).show();
+    }
     private void checkAdminStatus() {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
@@ -368,6 +474,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return latestChapterName;
     }
+
     private void startImageSlideshow() {
         // Thiết lập animation lướt sang trái cho ViewFlipper
         Animation in = AnimationUtils.loadAnimation(this, R.anim.slide_in_right);
@@ -376,10 +483,17 @@ public class MainActivity extends AppCompatActivity {
         imgNen.setInAnimation(in);
         imgNen.setOutAnimation(out);
 
-        // Thời gian chuyển đổi ảnh (3 giây)
+        // Thời gian chuyển đổi ảnh
         imgNen.setFlipInterval(4500);
 
         // Bắt đầu tự động lật
         imgNen.startFlipping();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkLoginStatus(); // Cập nhật trạng thái đăng nhập khi quay lại màn hình
+        checkAdminStatus(); // Cập nhật trạng thái admin
     }
 }

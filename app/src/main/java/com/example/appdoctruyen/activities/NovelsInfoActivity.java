@@ -21,6 +21,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.appdoctruyen.utils.EmailVerificationChecker;
 import com.google.firebase.auth.FirebaseAuth;
 
 import com.bumptech.glide.Glide;
@@ -150,10 +152,22 @@ public class NovelsInfoActivity extends AppCompatActivity {
         heartIcon.setOnClickListener(v -> {
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
             if (currentUser != null) {
-                // Người dùng đã đăng nhập, cho phép theo dõi/hủy theo dõi
-                isHeartFilled = !isHeartFilled;
-                heartIcon.setImageResource(isHeartFilled ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);
-                updateFollowStatus(novelId, isHeartFilled);
+                // Kiểm tra xác thực email
+                EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
+                    @Override
+                    public void onVerified() {
+                        // Người dùng đã xác thực email, cho phép theo dõi truyện
+                        isHeartFilled = !isHeartFilled;
+                        heartIcon.setImageResource(isHeartFilled ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);
+                        updateFollowStatus(novelId, isHeartFilled);
+                    }
+
+                    @Override
+                    public void onNotVerified() {
+                        // Người dùng chưa xác thực email
+                        EmailVerificationChecker.showVerificationDialog(NovelsInfoActivity.this, true);
+                    }
+                });
             } else {
                 // Người dùng chưa đăng nhập, hiển thị thông báo và chuyển đến màn hình đăng nhập
                 AlertDialog.Builder builder = new AlertDialog.Builder(NovelsInfoActivity.this);
@@ -168,6 +182,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
                         .show();
             }
         });
+
 
         btnEditNovel.setOnClickListener(v -> {
             Intent intent = new Intent(NovelsInfoActivity.this, EditNovelActivity.class);
@@ -445,7 +460,27 @@ public class NovelsInfoActivity extends AppCompatActivity {
             heartIcon.setVisibility(View.VISIBLE);
         }
     }
+    private void showEmailVerificationRequired() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Xác thực email");
+        builder.setMessage("Bạn cần xác thực email để sử dụng tính năng theo dõi truyện. Xác thực email cũng giúp bạn khôi phục tài khoản khi quên mật khẩu.");
 
+        builder.setPositiveButton("Gửi lại email xác thực", (dialog, which) -> {
+            if (user != null) {
+                user.sendEmailVerification().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(NovelsInfoActivity.this, "Đã gửi email xác thực. Vui lòng kiểm tra hộp thư của bạn.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(NovelsInfoActivity.this, "Không thể gửi email xác thực: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+
+        builder.setNegativeButton("Đóng", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
     @Override
     protected void onRestart() {
         super.onRestart();

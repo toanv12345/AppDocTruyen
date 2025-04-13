@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_verify_status"
+        android:title="Kiểm tra xác thực email" />
+    <item
+        android:id="@+id/menu_change_password"
+        android:title="Đổi mật khẩu" />
+    <item
+        android:id="@+id/menu_logout"
+        android:title="Đăng xuất" />
+</menu>
