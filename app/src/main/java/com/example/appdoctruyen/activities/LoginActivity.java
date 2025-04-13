@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -12,7 +11,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appdoctruyen.R;
@@ -81,22 +79,29 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d(TAG, "Login successful");
                             FirebaseUser user = Auth.getCurrentUser();
                             if (user != null) {
-                                // Cập nhật trạng thái xác thực trong database
-                                EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
-                                    @Override
-                                    public void onVerified() {
-                                        // Đã xác thực email, tiếp tục đăng nhập bình thường
+                                // Đầu tiên, kiểm tra xem người dùng có phải admin không
+                                checkIfAdmin(user, isAdmin -> {
+                                    if (isAdmin) {
+                                        // Nếu là admin, không cần xác thực email
                                         checkAdminAndProceed(user);
-                                    }
+                                    } else {
+                                        // Nếu không phải admin, kiểm tra xác thực email
+                                        EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
+                                            @Override
+                                            public void onVerified() {
+                                                // Đã xác thực email, tiếp tục đăng nhập bình thường
+                                                checkAdminAndProceed(user);
+                                            }
 
-                                    @Override
-                                    public void onNotVerified() {
-                                        // Hiển thị thông báo yêu cầu xác thực email
-                                        // nhưng vẫn cho phép đăng nhập với chức năng hạn chế
-                                        Toast.makeText(LoginActivity.this,
-                                                "Một số tính năng sẽ bị hạn chế cho đến khi bạn xác thực email.",
-                                                Toast.LENGTH_LONG).show();
-                                        checkAdminAndProceed(user);
+                                            @Override
+                                            public void onNotVerified() {
+                                                // Hiển thị thông báo yêu cầu xác thực email
+                                                Toast.makeText(LoginActivity.this,
+                                                        "Một số tính năng sẽ bị hạn chế cho đến khi bạn xác thực email.",
+                                                        Toast.LENGTH_LONG).show();
+                                                checkAdminAndProceed(user);
+                                            }
+                                        });
                                     }
                                 });
                             }
@@ -113,12 +118,6 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
-    }
-
-    // Cập nhật trạng thái xác thực email trong Database
-    private void updateEmailVerificationStatus(FirebaseUser user) {
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(user.getUid());
-        userRef.child("emailVerified").setValue(true);
     }
 
     // Kiểm tra quyền admin và chuyển tới màn hình chính
@@ -141,30 +140,32 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+    private void checkIfAdmin(FirebaseUser user, AdminCheckCallback callback) {
+        if (user == null) {
+            callback.onAdminCheck(false);
+            return;
+        }
 
-    // Hiển thị thông báo yêu cầu xác thực email
-    private void showVerificationAlert(FirebaseUser user) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Email chưa xác thực");
-        builder.setMessage("Bạn cần xác thực email để sử dụng đầy đủ tính năng của ứng dụng. Vui lòng kiểm tra hộp thư email của bạn.");
+        DatabaseReference userRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(user.getUid());
 
-        builder.setPositiveButton("Gửi lại email xác thực", (dialog, which) -> {
-            user.sendEmailVerification().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    Toast.makeText(LoginActivity.this, "Đã gửi email xác thực. Vui lòng kiểm tra hộp thư của bạn.", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(LoginActivity.this, "Không thể gửi email xác thực: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                }
-            });
+        userRef.child("isAdmin").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Boolean isAdmin = dataSnapshot.getValue(Boolean.class);
+                callback.onAdminCheck(isAdmin != null && isAdmin);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onAdminCheck(false);
+            }
         });
+    }
 
-        builder.setNegativeButton("Tiếp tục (chức năng bị hạn chế)", (dialog, which) -> {
-            // Chuyển tới màn hình chính nhưng với chức năng bị hạn chế
-            checkAdminAndProceed(user);
-        });
-
-        builder.setCancelable(false);
-        builder.show();
+    // Interface callback cho kiểm tra admin
+    public interface AdminCheckCallback {
+        void onAdminCheck(boolean isAdmin);
     }
 
     @Override

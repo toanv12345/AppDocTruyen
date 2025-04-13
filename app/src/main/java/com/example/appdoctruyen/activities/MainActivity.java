@@ -3,7 +3,6 @@ package com.example.appdoctruyen.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -51,12 +50,6 @@ public class MainActivity extends AppCompatActivity {
     NovelAdapter novelAdapter;
     ArrayList<Novel> novelArrayList;
     private Button btnNextPage, btnPrevPage;
-    private int currentPage = 0;
-    private final int[] imageArray = {
-            R.mipmap.test1,
-            R.mipmap.test2,
-            R.mipmap.test3
-    };
     private ViewFlipper imgNen;
     private static final int ITEMS_PER_PAGE = 18;
 
@@ -77,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference("truyen");
 
-
         init();
         anhXa();
         setUp();
@@ -94,23 +86,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         retrieveDataFromFirebase();
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null && !currentUser.isEmailVerified()) {
-            EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
-                @Override
-                public void onVerified() {
-                    // Email đã được xác thực, không cần làm gì thêm
-                }
 
-                @Override
-                public void onNotVerified() {
-                    // Email vẫn chưa được xác thực, hiển thị thông báo nhắc nhở
-                    Toast.makeText(MainActivity.this,
-                            "Vui lòng xác thực email để sử dụng đầy đủ tính năng của ứng dụng",
-                            Toast.LENGTH_LONG).show();
-                }
-            });
-        }
         // Set up SearchView listener
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -192,19 +168,19 @@ public class MainActivity extends AppCompatActivity {
                         .setNegativeButton("Để sau", (dialog, which) -> dialog.dismiss())
                         .show();
             } else {
-                // Kiểm tra xác thực email
-                EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
-                    @Override
-                    public void onVerified() {
-                        // Email đã xác thực, cho phép truy cập danh sách theo dõi
+                // Kiểm tra xem người dùng có phải admin không
+                isUserAdmin(currentUser.getUid(), isAdmin -> {
+                    if (isAdmin) {
+                        // Admin luôn được truy cập danh sách theo dõi
                         Intent intent = new Intent(MainActivity.this, FollowActivity.class);
                         startActivity(intent);
-                    }
-
-                    @Override
-                    public void onNotVerified() {
-                        // Email chưa xác thực
-                        EmailVerificationChecker.showVerificationDialog(MainActivity.this, true);
+                    } else if (currentUser.isEmailVerified()) {
+                        // Người dùng thường đã xác thực email
+                        Intent intent = new Intent(MainActivity.this, FollowActivity.class);
+                        startActivity(intent);
+                    } else {
+                        // Người dùng thường chưa xác thực email
+                        showEmailVerificationDialog(currentUser);
                     }
                 });
             }
@@ -219,45 +195,57 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Thêm phương thức để hiển thị menu khi click vào account icon
+    // Phương thức kiểm tra user có phải admin không
+    private void isUserAdmin(String userId, EmailVerificationChecker.AdminCheckCallback callback) {
+        if (userId == null || callback == null) {
+            if (callback != null) {
+                callback.onAdminCheck(false);
+            }
+            return;
+        }
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId);
+
+        userRef.child("isAdmin").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Boolean isAdmin = dataSnapshot.getValue(Boolean.class);
+                callback.onAdminCheck(isAdmin != null && isAdmin);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onAdminCheck(false);
+            }
+        });
+    }
+
+    // Hiển thị menu khi click vào account icon
     private void showAccountMenu(View view) {
+        // Tạo menu nhưng chưa hiển thị
         PopupMenu popupMenu = new PopupMenu(MainActivity.this, view);
         popupMenu.getMenuInflater().inflate(R.menu.account_menu, popupMenu.getMenu());
 
-        // Chỉ hiển thị tùy chọn "Kiểm tra xác thực email" nếu người dùng chưa xác thực
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser != null && currentUser.isEmailVerified()) {
-            popupMenu.getMenu().findItem(R.id.menu_verify_status).setVisible(false);
-        }
-
+        // Thiết lập listener xử lý sự kiện click
         popupMenu.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
+            FirebaseUser currentUser = auth.getCurrentUser();
 
             if (id == R.id.menu_verify_status) {
-                EmailVerificationChecker.showVerificationDialog(MainActivity.this, true);
+                showEmailVerificationDialog(currentUser);
                 return true;
             } else if (id == R.id.menu_change_password) {
-                // Kiểm tra xác thực email trước khi cho phép đổi mật khẩu
-                if (currentUser != null && !currentUser.isEmailVerified()) {
-                    // Kiểm tra lại trạng thái xác thực (có thể đã xác thực nhưng chưa cập nhật)
-                    EmailVerificationChecker.checkEmailVerificationStatus(new EmailVerificationChecker.VerificationCallback() {
-                        @Override
-                        public void onVerified() {
-                            // Đã xác thực, chuyển đến màn hình đổi mật khẩu
-                            Intent intent = new Intent(MainActivity.this, ChangePasswordActivity.class);
-                            startActivity(intent);
-                        }
-
-                        @Override
-                        public void onNotVerified() {
-                            // Vẫn chưa xác thực, hiển thị thông báo
-                            EmailVerificationChecker.showVerificationDialog(MainActivity.this, true);
-                        }
-                    });
-                } else {
-                    // Chuyển đến màn hình đổi mật khẩu
-                    Intent intent = new Intent(MainActivity.this, ChangePasswordActivity.class);
-                    startActivity(intent);
+                // Kiểm tra xem người dùng có phải admin không
+                if (currentUser != null) {
+                    if (currentUser.isEmailVerified()) {
+                            // Người dùng thường đã xác thực email
+                        Intent intent = new Intent(MainActivity.this, ChangePasswordActivity.class);
+                        startActivity(intent);
+                    } else {
+                        // Người dùng thường chưa xác thực email
+                        showEmailVerificationDialog(currentUser);
+                    }
                 }
                 return true;
             } else if (id == R.id.menu_logout) {
@@ -277,13 +265,39 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
-        popupMenu.show();
+
+        // Kiểm tra người dùng hiện tại
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser != null) {
+            isUserAdmin(currentUser.getUid(), isAdmin -> {
+                if (isAdmin) {
+                    // Admin không cần xác thực email và không được đổi mật khẩu
+                    popupMenu.getMenu().findItem(R.id.menu_verify_status).setVisible(false);
+                    popupMenu.getMenu().findItem(R.id.menu_change_password).setVisible(false);
+                } else if (currentUser.isEmailVerified()) {
+                    // Người dùng thường đã xác thực email
+                    popupMenu.getMenu().findItem(R.id.menu_verify_status).setVisible(false);
+                    popupMenu.getMenu().findItem(R.id.menu_change_password).setVisible(true);
+                } else {
+                    // Người dùng thường chưa xác thực email
+                    popupMenu.getMenu().findItem(R.id.menu_verify_status).setVisible(true);
+                    popupMenu.getMenu().findItem(R.id.menu_change_password).setVisible(true);
+                }
+
+                // CHỈ HIỂN THỊ MENU SAU KHI ĐÃ CẬP NHẬT VISIBILITY CỦA CÁC MỤC
+                popupMenu.show();
+            });
+        } else {
+            // Nếu không có người dùng đăng nhập, không cần kiểm tra, hiển thị menu mặc định
+            popupMenu.show();
+        }
     }
-    private void showEmailVerificationRequired() {
-        FirebaseUser user = auth.getCurrentUser();
+
+    // Hiển thị dialog yêu cầu xác thực email
+    private void showEmailVerificationDialog(FirebaseUser user) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Xác thực email");
-        builder.setMessage("Bạn cần xác thực email để sử dụng tính năng này. Xác thực email cũng giúp bạn khôi phục tài khoản khi quên mật khẩu.");
+        builder.setMessage("Bạn cần xác thực email để sử dụng đầy đủ tính năng của ứng dụng. Xác thực email cũng giúp bạn khôi phục tài khoản khi quên mật khẩu.");
 
         builder.setPositiveButton("Gửi lại email xác thực", (dialog, which) -> {
             if (user != null) {
@@ -297,9 +311,47 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        builder.setNegativeButton("Đóng", (dialog, which) -> dialog.dismiss());
+        builder.setNeutralButton("Tôi đã xác thực, kiểm tra lại", (dialog, which) -> {
+            // Hiển thị trạng thái đang tải
+            AlertDialog loadingDialog = new AlertDialog.Builder(this)
+                    .setTitle("Đang kiểm tra")
+                    .setMessage("Vui lòng đợi...")
+                    .setCancelable(false)
+                    .show();
+
+            // Tải lại thông tin người dùng để kiểm tra trạng thái xác thực
+            user.reload().addOnCompleteListener(task -> {
+                loadingDialog.dismiss();
+                FirebaseUser reloadedUser = auth.getCurrentUser();
+                if (reloadedUser != null && reloadedUser.isEmailVerified()) {
+                    // Cập nhật trạng thái xác thực trong database
+                    updateEmailVerificationStatus(reloadedUser);
+
+                    new AlertDialog.Builder(this)
+                            .setTitle("Xác thực thành công")
+                            .setMessage("Email của bạn đã được xác thực!")
+                            .setPositiveButton("OK", null)
+                            .show();
+                } else {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Chưa xác thực")
+                            .setMessage("Email của bạn vẫn chưa được xác thực. Vui lòng kiểm tra hộp thư và nhấn vào liên kết xác thực.")
+                            .setPositiveButton("OK", null)
+                            .show();
+                }
+            });
+        });
+
+        builder.setNegativeButton("Để sau", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
+
+    // Cập nhật trạng thái xác thực email trong Database
+    private void updateEmailVerificationStatus(FirebaseUser user) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(user.getUid());
+        userRef.child("emailVerified").setValue(true);
+    }
+
     private void nextPage() {
         if ((currentPage + 1) * ITEMS_PER_PAGE < novelArrayList.size()) {
             currentPage++;
@@ -364,9 +416,19 @@ public class MainActivity extends AppCompatActivity {
         if (user != null) {
             // Người dùng đã đăng nhập → Đổi icon tài khoản thành avatar
             accountIcon.setImageResource(R.drawable.new_img_login_foreground);
+
+            // Kiểm tra xem người dùng có phải admin không
+            isUserAdmin(user.getUid(), isAdmin -> {
+                if (!isAdmin && !user.isEmailVerified()) {
+                    // Hiển thị thông báo nhắc nhở nếu người dùng không phải admin và chưa xác thực email
+                    Toast.makeText(MainActivity.this,
+                            "Vui lòng xác thực email để sử dụng đầy đủ tính năng của ứng dụng.",
+                            Toast.LENGTH_LONG).show();
+                }
+            });
         } else {
             // Chưa đăng nhập → Hiển thị icon mặc định
-            accountIcon.setImageResource( R.drawable.img_login_foreground);
+            accountIcon.setImageResource(R.drawable.img_login_foreground);
         }
     }
 
@@ -402,11 +464,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return latestDate;
     }
-    private void showEmailVerificationBanner() {
-        Toast.makeText(this,
-                "Vui lòng xác thực email để sử dụng đầy đủ tính năng của ứng dụng",
-                Toast.LENGTH_LONG).show();
-    }
+
     private void checkAdminStatus() {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
@@ -489,6 +547,9 @@ public class MainActivity extends AppCompatActivity {
         // Bắt đầu tự động lật
         imgNen.startFlipping();
     }
+
+    // Thêm phần khai báo biến currentPage nếu chưa có
+    private int currentPage = 0;
 
     @Override
     protected void onResume() {

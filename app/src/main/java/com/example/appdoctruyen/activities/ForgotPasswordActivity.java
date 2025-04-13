@@ -21,6 +21,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView txtStatus;
     private FirebaseAuth mAuth;
+    private static final String ADMIN_EMAIL = "admin@gmail.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,24 +50,34 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
             progressBar.setVisibility(View.VISIBLE);
 
-            // Sử dụng Firebase để gửi email đặt lại mật khẩu
-            mAuth.sendPasswordResetEmail(email)
-                    .addOnCompleteListener(task -> {
-                        progressBar.setVisibility(View.GONE);
-                        if (task.isSuccessful()) {
-                            txtStatus.setText("Đã gửi email đặt lại mật khẩu.\nVui lòng kiểm tra hộp thư của bạn.");
-                            editEmail.setEnabled(false);
-                            btnResetPassword.setEnabled(false);
-                            Toast.makeText(ForgotPasswordActivity.this,
-                                    "Email đặt lại mật khẩu đã được gửi!",
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            String errorMessage = task.getException() != null ?
-                                    task.getException().getMessage() :
-                                    "Không thể gửi email đặt lại mật khẩu.";
-                            Toast.makeText(ForgotPasswordActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                        }
-                    });
+            // Kiểm tra nếu email là tài khoản admin
+            if (email.equalsIgnoreCase(ADMIN_EMAIL)) {
+                // Đây là tài khoản admin, không cho phép đặt lại mật khẩu
+                progressBar.setVisibility(View.GONE);
+                txtStatus.setText("Tài khoản admin không thể đặt lại mật khẩu thông qua ứng dụng.");
+                Toast.makeText(ForgotPasswordActivity.this,
+                        "Tài khoản admin không thể đặt lại mật khẩu thông qua ứng dụng",
+                        Toast.LENGTH_LONG).show();
+            } else {
+                // Không phải tài khoản admin, tiến hành gửi email đặt lại mật khẩu
+                mAuth.sendPasswordResetEmail(email)
+                        .addOnCompleteListener(task -> {
+                            progressBar.setVisibility(View.GONE);
+                            if (task.isSuccessful()) {
+                                txtStatus.setText("Đã gửi email đặt lại mật khẩu.\nVui lòng kiểm tra hộp thư của bạn.");
+                                editEmail.setEnabled(false);
+                                btnResetPassword.setEnabled(false);
+                                Toast.makeText(ForgotPasswordActivity.this,
+                                        "Email đặt lại mật khẩu đã được gửi!",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                String errorMessage = task.getException() != null ?
+                                        task.getException().getMessage() :
+                                        "Không thể gửi email đặt lại mật khẩu.";
+                                Toast.makeText(ForgotPasswordActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                            }
+                        });
+            }
         });
 
         btnBack.setOnClickListener(v -> finish());

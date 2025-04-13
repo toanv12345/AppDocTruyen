@@ -12,20 +12,47 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 public class EmailVerificationChecker {
-
+    public interface AdminCheckCallback {
+        void onAdminCheck(boolean isAdmin);
+    }
     public interface VerificationCallback {
         void onVerified();
         void onNotVerified();
     }
+    public static void isUserAdmin(String userId, AdminCheckCallback callback) {
+        if (userId == null || callback == null) {
+            if (callback != null) {
+                callback.onAdminCheck(false);
+            }
+            return;
+        }
 
+        DatabaseReference userRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId);
+
+        userRef.child("isAdmin").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Boolean isAdmin = dataSnapshot.getValue(Boolean.class);
+                callback.onAdminCheck(isAdmin != null && isAdmin);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                callback.onAdminCheck(false);
+            }
+        });
+    }
     /**
-     * Tải lại thông tin người dùng và kiểm tra trạng thái xác thực email
-     *
-     * @param callback Interface callback để xử lý sau khi kiểm tra
+     * Kiểm tra nếu người dùng cần xác thực email (không phải admin) hoặc đã xác thực
+     * @param forceCheck Buộc kiểm tra ngay cả khi là admin
      */
-    public static void checkEmailVerificationStatus(final VerificationCallback callback) {
+    public static void checkVerificationRequired(boolean forceCheck, final VerificationCallback callback) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             if (callback != null) {
@@ -34,16 +61,21 @@ public class EmailVerificationChecker {
             return;
         }
 
-        // Tải lại thông tin người dùng từ Firebase
-        currentUser.reload().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                // Lấy lại user instance sau khi reload
+        // Nếu email đã xác thực thì không cần kiểm tra admin
+        if (currentUser.isEmailVerified()) {
+            updateEmailVerificationStatus(currentUser);
+            if (callback != null) {
+                callback.onVerified();
+            }
+            return;
+        }
+
+        // Nếu forceCheck = true thì luôn kiểm tra xác thực mà không cần xem người dùng có phải admin không
+        if (forceCheck) {
+            currentUser.reload().addOnCompleteListener(task -> {
                 FirebaseUser reloadedUser = FirebaseAuth.getInstance().getCurrentUser();
-
                 if (reloadedUser != null && reloadedUser.isEmailVerified()) {
-                    // Email đã được xác thực, cập nhật trạng thái trong database
                     updateEmailVerificationStatus(reloadedUser);
-
                     if (callback != null) {
                         callback.onVerified();
                     }
@@ -52,12 +84,42 @@ public class EmailVerificationChecker {
                         callback.onNotVerified();
                     }
                 }
-            } else {
+            });
+            return;
+        }
+
+        // Kiểm tra xem người dùng có phải admin không
+        isUserAdmin(currentUser.getUid(), isAdmin -> {
+            if (isAdmin) {
+                // Người dùng là admin, coi như đã xác thực
                 if (callback != null) {
-                    callback.onNotVerified();
+                    callback.onVerified();
                 }
+            } else {
+                // Người dùng không phải admin, kiểm tra xác thực email
+                currentUser.reload().addOnCompleteListener(task -> {
+                    FirebaseUser reloadedUser = FirebaseAuth.getInstance().getCurrentUser();
+                    if (reloadedUser != null && reloadedUser.isEmailVerified()) {
+                        updateEmailVerificationStatus(reloadedUser);
+                        if (callback != null) {
+                            callback.onVerified();
+                        }
+                    } else {
+                        if (callback != null) {
+                            callback.onNotVerified();
+                        }
+                    }
+                });
             }
         });
+    }
+    /**
+     * Tải lại thông tin người dùng và kiểm tra trạng thái xác thực email
+     *
+     * @param callback Interface callback để xử lý sau khi kiểm tra
+     */
+    public static void checkEmailVerificationStatus(final VerificationCallback callback) {
+        checkVerificationRequired(true, callback);
     }
 
     /**
