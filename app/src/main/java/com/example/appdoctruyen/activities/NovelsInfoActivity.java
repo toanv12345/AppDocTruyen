@@ -529,7 +529,7 @@ public class NovelsInfoActivity extends AppCompatActivity {
             }
         });
         publishDate.setOnClickListener(v -> {
-            String description = txt_description.getText().toString();
+            String description = publishDate.getText().toString();
             if (!description.isEmpty()) {
                 showPopup("Ngày xuất bản", description);
             }
