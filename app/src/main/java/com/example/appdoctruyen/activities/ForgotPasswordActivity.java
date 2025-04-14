@@ -8,10 +8,17 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.appdoctruyen.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
 
@@ -59,27 +66,88 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                         "Tài khoản admin không thể đặt lại mật khẩu thông qua ứng dụng",
                         Toast.LENGTH_LONG).show();
             } else {
-                // Không phải tài khoản admin, tiến hành gửi email đặt lại mật khẩu
-                mAuth.sendPasswordResetEmail(email)
-                        .addOnCompleteListener(task -> {
-                            progressBar.setVisibility(View.GONE);
-                            if (task.isSuccessful()) {
-                                txtStatus.setText("Đã gửi email đặt lại mật khẩu.\nVui lòng kiểm tra hộp thư của bạn.");
-                                editEmail.setEnabled(false);
-                                btnResetPassword.setEnabled(false);
-                                Toast.makeText(ForgotPasswordActivity.this,
-                                        "Email đặt lại mật khẩu đã được gửi!",
-                                        Toast.LENGTH_SHORT).show();
-                            } else {
-                                String errorMessage = task.getException() != null ?
-                                        task.getException().getMessage() :
-                                        "Không thể gửi email đặt lại mật khẩu.";
-                                Toast.makeText(ForgotPasswordActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                            }
-                        });
+                // Không phải tài khoản admin, kiểm tra xác thực email
+                checkEmailVerification(email);
             }
         });
 
         btnBack.setOnClickListener(v -> finish());
+    }
+
+    // Phương thức kiểm tra xác thực email
+    private void checkEmailVerification(String email) {
+        // Tìm người dùng theo email trong database
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        Query emailQuery = usersRef.orderByChild("email").equalTo(email);
+
+        emailQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    boolean isVerified = false;
+                    String userId = null;
+
+                    for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
+                        userId = userSnapshot.getKey();
+                        // Kiểm tra trạng thái xác thực email
+                        if (userSnapshot.hasChild("emailVerified")) {
+                            Boolean verified = userSnapshot.child("emailVerified").getValue(Boolean.class);
+                            if (verified != null && verified) {
+                                isVerified = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (isVerified) {
+                        // Email đã được xác thực, tiến hành gửi email đặt lại mật khẩu
+                        sendPasswordResetEmail(email);
+                    } else {
+                        // Email chưa được xác thực
+                        progressBar.setVisibility(View.GONE);
+                        txtStatus.setText("Email chưa được xác thực. Không thể gửi email đặt lại mật khẩu.");
+                        Toast.makeText(ForgotPasswordActivity.this,
+                                "Bạn cần xác thực email trước khi đặt lại mật khẩu",
+                                Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    // Không tìm thấy email trong hệ thống
+                    progressBar.setVisibility(View.GONE);
+                    txtStatus.setText("Không tìm thấy email trong hệ thống.");
+                    Toast.makeText(ForgotPasswordActivity.this,
+                            "Email không tồn tại trong hệ thống",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(ForgotPasswordActivity.this,
+                        "Lỗi: " + databaseError.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Phương thức gửi email đặt lại mật khẩu
+    private void sendPasswordResetEmail(String email) {
+        mAuth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    progressBar.setVisibility(View.GONE);
+                    if (task.isSuccessful()) {
+                        txtStatus.setText("Đã gửi email đặt lại mật khẩu.\nVui lòng kiểm tra hộp thư của bạn.");
+                        editEmail.setEnabled(false);
+                        btnResetPassword.setEnabled(false);
+                        Toast.makeText(ForgotPasswordActivity.this,
+                                "Email đặt lại mật khẩu đã được gửi!",
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        String errorMessage = task.getException() != null ?
+                                task.getException().getMessage() :
+                                "Không thể gửi email đặt lại mật khẩu.";
+                        Toast.makeText(ForgotPasswordActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 }
